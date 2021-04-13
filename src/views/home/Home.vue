@@ -1,0 +1,105 @@
+<template>
+  <Slogn />
+  <div class="column-list-wrapper">
+    <div class="column-list-header">精选专栏</div>
+    <div class="column-list">
+      <template v-for="item in list" :key="item">
+        <div class="column">
+          <div class="avatar">
+            <img
+              src="http://vue-maker.oss-cn-hangzhou.aliyuncs.com/vue-marker/5f3e41a8b7d9c60b68cdd1ec.jpg?x-oss-process=image/resize,m_pad,h_50,w_50"
+            />
+          </div>
+          <div class="title">CATTI和MTI考研考试资料与资讯</div>
+          <div class="desc">Vue is a</div>
+          <div class="btn">进入专栏</div>
+        </div>
+      </template>
+    </div>
+  </div>
+</template>
+
+<script lang="ts">
+import { useStore } from "vuex";
+import { computed, defineComponent, onMounted } from "vue";
+import { ColumnProps } from "../../store";
+
+import Slogn from "./Slogn.vue";
+
+export default defineComponent({
+  name: "Home",
+  components: { Slogn },
+  setup() {
+    const store = useStore();
+    onMounted(() => {
+      store.dispatch("fetchColumns");
+    });
+    const list = computed(() => store.state.columns);
+
+    return { list };
+  },
+});
+</script>
+
+<style lang="scss" scoped>
+.column-list-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 0.7rem;
+  .column-list-header {
+    width: 13rem;
+    display: flex;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 0.22rem;
+    margin: 0.3rem 0;
+  }
+  .column-list {
+    width: 13rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    .column {
+      width: 4rem;
+      height: 2.6rem;
+      box-sizing: border-box;
+      padding: 0.3rem 0;
+      border-radius: 0.08rem;
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 0.01rem solid rgba(0, 0, 0, 0.125);
+      position: relative;
+      margin-bottom: 0.3rem;
+      .avatar {
+        img {
+          width: 0.5rem;
+          height: 0.5rem;
+          border-radius: 50%;
+        }
+      }
+      .title {
+        margin: 0.16rem 0;
+        font-size: 0.2rem;
+      }
+      .desc {
+        color: #6c757d;
+      }
+      .btn {
+        padding: 0.1rem;
+        border-radius: 0.06rem;
+        border: 0.01rem solid #0d6efd;
+        color: #0d6efd;
+        position: absolute;
+        bottom: 0.2rem;
+        &:hover {
+          cursor: pointer;
+        }
+      }
+    }
+  }
+}
+</style>

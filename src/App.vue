@@ -1,17 +1,20 @@
 <template>
-  <Home />
+  <Header />
+  <router-view />
+  <Footer />
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
 
-import Home from "./views/home/index.vue";
+import Header from "./components/header/Header.vue";
+import Footer from "./components/footer/Footer.vue";
 
 export default defineComponent({
   name: "App",
-  components: { Home },
+  components: { Header, Footer },
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 </style>

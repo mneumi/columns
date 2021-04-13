@@ -5,3 +5,24 @@ html {
 body {
   font-size: .16rem;
 }
+
+#app {
+  position: relative;
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+  &:link {
+    color: #0d6efd;
+  }
+  &:visited {
+    color: #0d6efd;
+  }
+  &:hover {
+    color: #0d6efd;
+  }
+  &:active {
+    color: #0d6efd;
+  }
+}
