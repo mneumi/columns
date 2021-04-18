@@ -3,16 +3,15 @@
   <div class="column-list-wrapper">
     <div class="column-list-header">精选专栏</div>
     <div class="column-list">
-      <template v-for="item in list" :key="item">
+      <template v-for="item in list" :key="item._id">
         <div class="column">
           <div class="avatar">
-            <img
-              src="http://vue-maker.oss-cn-hangzhou.aliyuncs.com/vue-marker/5f3e41a8b7d9c60b68cdd1ec.jpg?x-oss-process=image/resize,m_pad,h_50,w_50"
-            />
+            <img :src="item.avatar.url" />
           </div>
-          <div class="title">CATTI和MTI考研考试资料与资讯</div>
-          <div class="desc">Vue is a</div>
-          <div class="btn">进入专栏</div>
+          <div class="title">{{ item.title }}</div>
+          <div class="desc">{{ item.description }}</div>
+
+          <div class="btn" @click="() => enterColumn(item._id)">进入专栏</div>
         </div>
       </template>
     </div>
@@ -22,21 +21,29 @@
 <script lang="ts">
 import { useStore } from "vuex";
 import { computed, defineComponent, onMounted } from "vue";
-import { ColumnProps } from "../../store";
 
 import Slogn from "./Slogn.vue";
+import { IStore } from "@/interface";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
   name: "Home",
   components: { Slogn },
   setup() {
-    const store = useStore();
+    const router = useRouter();
+    const store = useStore<IStore>();
+
     onMounted(() => {
       store.dispatch("fetchColumns");
     });
+
+    const enterColumn = (id: string) => {
+      router.push(`/columns/${id}`);
+    };
+
     const list = computed(() => store.state.columns);
 
-    return { list };
+    return { list, enterColumn };
   },
 });
 </script>
@@ -63,9 +70,9 @@ export default defineComponent({
     justify-content: space-around;
     .column {
       width: 4rem;
-      height: 2.6rem;
+      height: 2.8rem;
       box-sizing: border-box;
-      padding: 0.3rem 0;
+      padding: 0.3rem 0.3rem;
       border-radius: 0.08rem;
       background-color: #fff;
       display: flex;
@@ -96,6 +103,8 @@ export default defineComponent({
         position: absolute;
         bottom: 0.2rem;
         &:hover {
+          background-color: #0d6efd;
+          color: #fff;
           cursor: pointer;
         }
       }

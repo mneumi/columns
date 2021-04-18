@@ -1,4 +1,5 @@
 export interface ColumnProps {
+  [x: string]: string;
   id: number;
   title: string;
   avatar?: string;

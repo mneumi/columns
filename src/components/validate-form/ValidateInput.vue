@@ -1,15 +1,26 @@
 <template>
   <div class="validate-input-wrapper">
-    <div class="title">{{ title }}</div>
+    <div class="title" v-if="title">{{ title }}</div>
     <input
+      v-if="inputType === 'input'"
       v-bind="attrs"
       :value="inputReactive.val"
       @input="updateInput"
       @blur="validateInput"
       autocomplete
     />
-    <div class="error-message" v-show="inputReactive.hasError">
-      {{ inputReactive.errorMessage }}
+    <textarea
+      v-else
+      v-bind="attrs"
+      :value="inputReactive.val"
+      @input="updateInput"
+      @blur="validateInput"
+      autocomplete
+    />
+    <div class="error-message">
+      <span v-show="inputReactive.hasError">
+        {{ inputReactive.errorMessage }}
+      </span>
     </div>
   </div>
 </template>
@@ -19,9 +30,12 @@ import { defineComponent, onMounted, PropType, reactive } from "vue";
 import { emitter } from "./ValidateForm.vue";
 
 interface RuleProp {
-  type: "required" | "length>=6";
+  type: "required" | "email" | "custom";
   message: string;
+  validator?: () => boolean;
 }
+
+export type InputType = "input" | "textarea";
 
 export type RulesProp = RuleProp[];
 
@@ -32,13 +46,24 @@ export default defineComponent({
       type: Array as PropType<RulesProp>,
       required: true,
     },
-    title: String,
-    modelValue: String,
+    title: {
+      type: String,
+      required: false,
+    },
+    modelValue: {
+      type: String,
+      required: true,
+    },
+    inputType: {
+      type: String as PropType<InputType>,
+      required: false,
+      default: "input",
+    },
   },
   setup(props, { attrs, emit }) {
     const inputReactive = reactive({
       val: props.modelValue || "",
-      hasError: false,
+      hasError: true,
       errorMessage: "",
     });
 
@@ -47,6 +72,8 @@ export default defineComponent({
       inputReactive.val = newInputValue;
       emit("update:modelValue", newInputValue);
     };
+
+    const emailRegexp = /^([a-zA-Z]|[0-9])(\w|\\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/i;
 
     const validateInput = () => {
       if (props.rules) {
@@ -58,8 +85,16 @@ export default defineComponent({
             case "required":
               passed = inputReactive.val.trim() !== "";
               break;
-            case "length>=6":
-              passed = inputReactive.val.trim().length >= 6;
+            case "email":
+              passed = emailRegexp.test(inputReactive.val.trim());
+              break;
+            case "custom":
+              if (rule.validator) {
+                passed = rule.validator();
+              } else {
+                passed = false;
+                inputReactive.errorMessage = "请输入自定义校验函数";
+              }
               break;
           }
 
@@ -92,14 +127,13 @@ export default defineComponent({
 .validate-input-wrapper {
   display: flex;
   flex-direction: column;
-  width: 3.6rem;
-  height: 1.1rem;
   box-sizing: border-box;
-  padding: 0.15rem;
+  margin-bottom: 0.2rem;
   .title {
-    margin-bottom: 0.08rem;
+    margin-bottom: 0.12rem;
   }
-  input {
+  input,
+  textarea {
     margin-bottom: 0.08rem;
     outline: none;
     padding: 0.1rem;

@@ -24,16 +24,41 @@ const router = createRouter({
     {
       name: 'Create',
       path: '/create',
-      component: () => import('./views/register/Register.vue'),
+      component: () => import('./views/create/Create.vue'),
+      meta: { requiredLogin: true },
+    },
+    {
+      name: 'Column',
+      path: '/columns/:id',
+      component: () => import('./views/column/Column.vue'),
+    },
+    {
+      name: 'Post',
+      path: '/posts/:id',
+      component: () => import('./views/post/Post.vue'),
+    },
+    {
+      name: 'Edit',
+      path: '/edit',
+      component: () => import('./views/edit/Edit.vue'),
       meta: { requiredLogin: true },
     },
   ],
+  scrollBehavior(to, from, savedPoint) {
+    if (savedPoint) {
+      return savedPoint;
+    }
+    return {
+      left: 0,
+      top: 0
+    };
+  },
 });
 
 router.beforeEach((to, from, next) => {
-  if (to.meta.requiredLogin && !store.state.user.isLogin) {
+  if (to.meta.requiredLogin && !store.state.token) {
     next({ name: 'Login' });
-  } else if (to.meta.redirectAlreadyLogin && store.state.user.isLogin) {
+  } else if (to.meta.redirectAlreadyLogin && store.state.token) {
     next('/');
   } else {
     next();

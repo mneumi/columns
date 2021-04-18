@@ -4,19 +4,20 @@
       <div class="title" @click="handleTitleClick">
         mneumi 专栏（仅用于演示）
       </div>
+      {{ userId }}
       <div class="feature">
         <div class="non-login" v-if="!isLogin">
           <div class="login btn" @click="handleLoginClick">登录</div>
           <div class="register btn" @click="handleRegisterClick">注册</div>
         </div>
-        <div class="status" v-else>
+        <div class="user-info" v-else>
           <div class="title" @click.stop="changeShowDropdown">
-            <span>你好，mneumi</span>
+            <span>你好，{{ username }}</span>
           </div>
           <div class="dropdown" v-show="showDropdown" ref="dropdownRef">
             <div class="dropdown-item">新建文章</div>
-            <div class="dropdown-item">编辑资料</div>
-            <div class="dropdown-item">退出登录</div>
+            <div class="dropdown-item" @click="editProfile">编辑资料</div>
+            <div class="dropdown-item" @click="logout">退出登录</div>
           </div>
         </div>
       </div>
@@ -25,57 +26,141 @@
 </template>
 
 <script lang="ts">
-import { GlobalDataProps } from "@/store";
+import { IStore } from "@/interface";
 import { defineComponent, ref, onMounted, onUnmounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 
+const useDropdown = () => {
+  const dropdownRef = ref<null | HTMLElement>(null);
+  const showDropdown = ref<boolean>(false);
+
+  const changeShowDropdown = () => {
+    showDropdown.value = !showDropdown.value;
+  };
+
+  const clickOutside = (e: MouseEvent) => {
+    if (dropdownRef.value) {
+      if (
+        !dropdownRef.value.contains(e.target as HTMLElement) &&
+        showDropdown.value
+      ) {
+        showDropdown.value = false;
+      }
+    }
+  };
+
+  onMounted(() => {
+    document.addEventListener("click", clickOutside);
+  });
+
+  onUnmounted(() => {
+    document.removeEventListener("click", clickOutside);
+  });
+
+  return {
+    dropdownRef,
+    showDropdown,
+    changeShowDropdown,
+  };
+};
+
+const useLogin = () => {
+  const router = useRouter();
+  const store = useStore<IStore>();
+
+  const isLogin = computed(() => {
+    return store.state.token !== "";
+  });
+
+  const handleLoginClick = () => {
+    router.push("/login");
+  };
+
+  return {
+    isLogin,
+    handleLoginClick,
+  };
+};
+
+const useRegister = () => {
+  const router = useRouter();
+
+  const handleRegisterClick = () => {
+    router.push("/register");
+  };
+
+  return { handleRegisterClick };
+};
+
+const useTitle = () => {
+  const router = useRouter();
+
+  const handleTitleClick = () => {
+    router.push("/");
+  };
+
+  return { handleTitleClick };
+};
+
+const useLogout = (changeShowDropdown: () => void) => {
+  const router = useRouter();
+  const store = useStore();
+
+  const logout = () => {
+    store.commit("logout");
+    router.push("/");
+    changeShowDropdown();
+  };
+
+  return { logout };
+};
+
+const useUserInfo = () => {
+  const store = useStore<IStore>();
+
+  if (!store.state.user.nickName) {
+    if (localStorage.getItem("userInfo") !== null) {
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") as string);
+      store.commit("getUserInfo", userInfo);
+    } else if (store.state.token) {
+      store.dispatch("getUserInfo");
+    }
+  }
+
+  const username = computed(() => {
+    return store.state.user.nickName;
+  });
+
+  const userId = computed(() => {
+    return store.state.user._id;
+  });
+
+  return { username, userId };
+};
+
+const useEditProfile = () => {
+  const router = useRouter();
+
+  const editProfile = () => {
+    router.push("/edit");
+  };
+
+  return {
+    editProfile
+  }
+};
+
 export default defineComponent({
   name: "Header",
   setup() {
-    const router = useRouter();
-    const store = useStore<GlobalDataProps>();
-    const dropdownRef = ref<null | HTMLElement>(null);
-    const showDropdown = ref<boolean>(false);
-
-    const changeShowDropdown = () => {
-      showDropdown.value = !showDropdown.value;
-    };
-
-    const isLogin = computed(() => {
-      return store.state.user.isLogin;
-    });
-
-    const clickOutside = (e: MouseEvent) => {
-      if (dropdownRef.value) {
-        if (
-          !dropdownRef.value.contains(e.target as HTMLElement) &&
-          showDropdown.value
-        ) {
-          showDropdown.value = false;
-        }
-      }
-    };
-
-    const handleTitleClick = () => {
-      router.push("/");
-    };
-
-    const handleLoginClick = () => {
-      router.push("/login");
-    };
-
-    const handleRegisterClick = () => {
-      router.push("/register");
-    };
-
-    onMounted(() => {
-      document.addEventListener("click", clickOutside);
-    });
-
-    onUnmounted(() => {
-      document.removeEventListener("click", clickOutside);
-    });
+    const { dropdownRef, showDropdown, changeShowDropdown } = useDropdown();
+    const { isLogin, handleLoginClick } = useLogin();
+    const { handleRegisterClick } = useRegister();
+    const { handleTitleClick } = useTitle();
+    const { username, userId } = useUserInfo();
+    const { logout } = useLogout(changeShowDropdown);
+    const { editProfile } = useEditProfile();
 
     return {
       showDropdown,
@@ -84,7 +169,11 @@ export default defineComponent({
       handleTitleClick,
       handleLoginClick,
       handleRegisterClick,
-      isLogin
+      isLogin,
+      username,
+      userId,
+      logout,
+      editProfile
     };
   },
 });
@@ -131,10 +220,12 @@ export default defineComponent({
           border-radius: 0.05rem;
           &:hover {
             cursor: pointer;
+            background-color: #fff;
+            color: #000;
           }
         }
       }
-      .status {
+      .user-info {
         height: 0.7rem;
         display: flex;
         align-items: center;
@@ -169,9 +260,6 @@ export default defineComponent({
             margin-bottom: 0.16rem;
             &:hover {
               cursor: pointer;
-            }
-            &:nth-child(2n) {
-              color: #666;
             }
             &:last-child {
               margin: 0;

@@ -1,15 +1,23 @@
 <template>
   <div class="validate-form-wrapper">
-    <div class="form-name">{{ formName }}</div>
+    <div class="form-name" v-if="formName">{{ formName }}</div>
     <form>
       <slot></slot>
     </form>
-    <div class="btn" @click="submitForm">{{ btnName }}</div>
+    <div
+      class="btn"
+      v-if="btnName"
+      :style="{ width: btnWidth }"
+      @click="submitForm"
+      ref="submitRef"
+    >
+      {{ btnName }}
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onUnmounted } from "vue";
+import { defineComponent, onMounted, onUnmounted, ref } from "vue";
 import mitt from "mitt";
 
 type ValidateFunc = () => boolean;
@@ -22,11 +30,16 @@ export default defineComponent({
   props: {
     formName: {
       type: String,
-      required: true,
+      required: false,
     },
     btnName: {
       type: String,
-      required: true,
+      required: false,
+    },
+    btnWidth: {
+      type: String,
+      required: false,
+      default: "100%",
     },
   },
   setup(props, context) {
@@ -49,6 +62,20 @@ export default defineComponent({
       funcArray = [];
     });
 
+    const keyEnterSubmit = (event: KeyboardEvent) => {
+      if (event.code === "Enter") {
+        submitForm();
+      }
+    };
+
+    onMounted(() => {
+      document.addEventListener("keypress", keyEnterSubmit);
+    });
+
+    onUnmounted(() => {
+      document.removeEventListener("keypress", keyEnterSubmit);
+    })
+
     return { submitForm };
   },
 });
@@ -58,15 +85,13 @@ export default defineComponent({
 .validate-form-wrapper {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  margin-top: 0.5rem;
+  width: 100%;
   .form-name {
-    font-size: 0.22rem;
-    margin-bottom: 0.3rem;
+    font-size: 0.3rem;
+    margin: 0 auto 0.5rem auto;
   }
   .btn {
-    width: 3.3rem;
-    height: 0.38rem;
+    padding: 0.15rem 0;
     background-color: #0d6efd;
     display: flex;
     justify-content: center;

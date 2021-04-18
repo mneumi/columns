@@ -1,94 +1,130 @@
-import { PropType } from 'vue';
 import { createStore } from 'vuex';
-import request from './request';
+import { IStore, MessageType } from '@/interface';
+import request from '@/request';
 
-interface UserProps {
-  isLogin: boolean;
-  name?: string;
-  id?: number;
-}
-
-interface ImageProps {
-  _id?: string;
-  url?: string;
-  createdAt?: string;
-}
-
-export interface ColumnProps {
-  _id: string;
-  title: string;
-  avatar?: ImageProps;
-  description: string;
-}
-
-export interface PostProps {
-  _id: string;
-  title: string;
-  content: string;
-  image?: string;
-  createAt: string;
-  column: string;
-}
-
-export interface GlobalDataProps {
-  loading: boolean;
-  columns: ColumnProps[];
-  posts: PostProps[];
-  user: UserProps;
-}
-
-const store = createStore<GlobalDataProps>({
+const store = createStore<IStore>({
   state: {
-    loading: false,
-    columns: [],
-    posts: [],
+    loading: 0,
+    message: {
+      type: 'default',
+      content: '',
+    },
+    token: localStorage.getItem('token') || '',
     user: {
-      isLogin: false,
+      _id: '',
+      email: '',
+      nickName: '',
+      description: '',
+      avatar: '',
+      column: '',
+    },
+    columns: [],
+    columnInfo: {
+      title: '',
+      description: '',
+      avatar: '',
     },
   },
   mutations: {
-    login(state) {
-      state.user = { ...state.user, isLogin: true, name: 'viking' };
+    fetchColumns(state, payload) {
+      const { columns } = payload;
+      state.columns = columns;
     },
-    createPost(state, newPost) {
-      state.posts.push(newPost);
+    login(state, payload) {
+      const { token } = payload;
+      state.token = token;
+      localStorage.setItem('token', token);
     },
-    fetchColumns(state, rawData) {
-      state.columns = rawData.data.list;
+    getUserInfo(state, payload) {
+      const { column, email, nickName, _id } = payload;
+
+      const userInfo = {
+        ...state.user,
+        _id,
+        column,
+        nickName,
+        email,
+      };
+
+      state.user = userInfo;
+      localStorage.setItem('userInfo', JSON.stringify(userInfo));
     },
-    fetchColumn(state, rawData) {
-      state.columns = [rawData.data];
+    logout(state, payload) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('userInfo');
+      state.token = '';
     },
-    fetchPosts(state, rawData) {
-      state.columns = rawData.data.list;
+    addLoading(state, payload) {
+      state.loading++;
     },
-    setLoading(state, status) {
-      state.loading = status;
+    minusLoading(state, payload) {
+      state.loading--;
+    },
+    setMessage(state, payload: { type: MessageType; content: string }) {
+      const { content, type } = payload;
+      state.message.type = type;
+      state.message.content = content;
     },
   },
-  getters: {
-    getColumnById: (state) => (id: string) => {
-      return state.columns.find((c) => c._id === id);
-    },
-    getPostsByCid: (state) => (cid: string) => {
-      return state.posts.filter((post) => post.column === cid);
-    },
-  },
+  getters: {},
   actions: {
-    async fetchColumns(context) {
-      context.commit('setLoading', true);
-      const res = await request.get('/columns');
-      context.commit('fetchColumns', res.data);
-      context.commit('setLoading', false);
+    async fetchColumns(context, payload) {
+      const result = await request.get('/columns', {
+        params: {
+          currentPage: 1,
+          pageSize: 6,
+        },
+      });
+      const list = result.data.data.list;
+      context.commit('fetchColumns', { columns: list });
     },
-    async fetchColumn({ commit }, cid) {
-      const res = await request.get(`/columns/${cid}`);
-      commit('fetchColumn', res.data);
+    async login(context, payload) {
+      const { email, password } = payload;
+
+      const result = await request.post('/user/login', {
+        email,
+        password,
+      });
+
+      const token = result.data.data.token;
+
+      context.commit('login', { token });
+
+      await context.dispatch('getUserInfo');
     },
-    async fetchPosts({ commit }, cid) {
-      const res = await request.get(`/columns/${cid}/posts`);
-      commit('fetchProps', res.data);
+    async register(context, payload) {
+      const { email, password, nickName } = payload;
+
+      const result = await request.post('/users', {
+        email,
+        password,
+        nickName,
+      });
+
+      console.log(result);
     },
+    async getUserInfo(context, payload) {
+      if (!context.state.token) {
+        return;
+      }
+
+      const {
+        data: { data: data },
+      } = await request.get('/user/current');
+      context.commit('getUserInfo', data);
+      console.log('userInfo ', data);
+    },
+    async updateUserInfo(context, payload) {
+      const result = await request.patch(
+        `/user/${context.state.user._id}`,
+        payload
+      );
+      console.log("store.ts: ", result);
+    },
+    async updateColumnInfo(context, payload) {
+      const result = await request.patch(`/columns/${context.state.user.column}`, payload);
+      console.log(result);
+    }
   },
 });
 
