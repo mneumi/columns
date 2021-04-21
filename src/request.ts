@@ -1,7 +1,8 @@
 import axios from 'axios';
 import store from '@/store';
 
-axios.defaults.baseURL = 'http://apis.imooc.com/api/';
+// axios.defaults.baseURL = 'http://apis.imooc.com/api/';
+axios.defaults.baseURL = 'http://localhost:3000';
 axios.defaults.headers['Content-Type'] = 'application/json';
 
 const icode = '2DFF2F014F547C96';
@@ -47,9 +48,7 @@ axios.interceptors.response.use(
     return response;
   },
   (err) => {
-    const errContent = err?.response?.data?.error || '网络发生错误';
     store.commit('minusLoading');
-    store.commit('setMessage', { content: errContent, type: 'error' });
     return Promise.reject(err.response.data);
   }
 );

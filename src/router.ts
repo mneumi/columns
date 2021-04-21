@@ -22,9 +22,9 @@ const router = createRouter({
       component: () => import('./views/register/Register.vue'),
     },
     {
-      name: 'Create',
-      path: '/create',
-      component: () => import('./views/create/Create.vue'),
+      name: 'write',
+      path: '/write',
+      component: () => import('./views/write/Write.vue'),
       meta: { requiredLogin: true },
     },
     {

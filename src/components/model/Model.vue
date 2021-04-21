@@ -45,15 +45,14 @@ export default defineComponent({
       emit("cancel");
     };
 
-    return {
-      showModel,
-      closeModel,
-    };
+    return { showModel, closeModel };
   },
 });
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/colors.scss";
+
 .model-wrapper {
   width: 100vw;
   height: 100vh;
@@ -63,22 +62,22 @@ export default defineComponent({
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: $light-black-color;
   .container {
     width: 30%;
     height: 30%;
-    background-color: #fff;
+    background-color: $white-color;
     display: flex;
     flex-direction: column;
     border-radius: 0.08rem;
     .title {
       flex: 2;
-      border-bottom: 0.01rem solid rgba(0, 0, 0, 0.125);
+      border-bottom: 0.01rem solid $light-black-color;
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: #0d6efd;
-      color: #fff;
+      background-color: $primary-color;
+      color: $white-color;
       border-top-left-radius: 0.08rem;
       border-top-right-radius: 0.08rem;
     }
@@ -94,22 +93,21 @@ export default defineComponent({
       align-items: center;
       justify-content: flex-end;
       padding-right: 0.2rem;
-      // background-color: burlywood;
       .btn {
         margin: 0 0.1rem;
-        background-color: red;
+        background-color: $error-color;
         padding: 0.05rem 0.1rem;
         border-radius: 0.04rem;
-        color: #fff;
+        color: $white-color;
         &:hover {
           cursor: pointer;
         }
       }
       .confirm {
-        background-color: seagreen;
+        background-color: $success-color;
       }
       .cancel {
-        background-color: brown;
+        background-color: $error-color;
       }
     }
   }

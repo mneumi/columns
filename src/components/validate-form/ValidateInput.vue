@@ -2,21 +2,27 @@
   <div class="validate-input-wrapper">
     <div class="title" v-if="title">{{ title }}</div>
     <input
+      autocomplete
       v-if="inputType === 'input'"
       v-bind="attrs"
       :value="inputReactive.val"
       @input="updateInput"
       @blur="validateInput"
-      autocomplete
     />
     <textarea
-      v-else
+      autocomplete
+      v-else-if="inputType === 'textarea'"
       v-bind="attrs"
       :value="inputReactive.val"
       @input="updateInput"
       @blur="validateInput"
-      autocomplete
     />
+    <v-md-editor
+      v-else-if="inputType === 'markdown'"
+      v-model="inputReactive.val"
+      height="400px"
+      @change="updateMarkdownInput"
+    ></v-md-editor>
     <div class="error-message">
       <span v-show="inputReactive.hasError">
         {{ inputReactive.errorMessage }}
@@ -35,7 +41,7 @@ interface RuleProp {
   validator?: () => boolean;
 }
 
-export type InputType = "input" | "textarea";
+export type InputType = "input" | "textarea" | "markdown";
 
 export type RulesProp = RuleProp[];
 
@@ -71,6 +77,11 @@ export default defineComponent({
       const newInputValue = (e.target as HTMLInputElement).value;
       inputReactive.val = newInputValue;
       emit("update:modelValue", newInputValue);
+    };
+
+    const updateMarkdownInput = (text: string, html: string) => {
+      inputReactive.val = text;
+      emit("update:modelValue", html);
     };
 
     const emailRegexp = /^([a-zA-Z]|[0-9])(\w|\\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/i;
@@ -118,12 +129,15 @@ export default defineComponent({
       validateInput,
       updateInput,
       attrs,
+      updateMarkdownInput,
     };
   },
 });
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/colors.scss";
+
 .validate-input-wrapper {
   display: flex;
   flex-direction: column;
@@ -138,12 +152,13 @@ export default defineComponent({
     outline: none;
     padding: 0.1rem;
     border-radius: 0.05rem;
-    border: 0.01rem solid #666;
+    border: 0.01rem solid $dark-grey-color;
     font-size: 0.14rem;
   }
   .error-message {
+    margin-top: 0.1rem;
     height: 0.2rem;
-    color: red;
+    color: $error-color;
   }
 }
 </style>

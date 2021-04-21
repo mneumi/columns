@@ -11,18 +11,18 @@ const store = createStore<IStore>({
     },
     token: localStorage.getItem('token') || '',
     user: {
-      _id: '',
+      userId: '',
       email: '',
-      nickName: '',
-      description: '',
+      nickname: '',
+      desc: '',
       avatar: '',
-      column: '',
+      columnId: '',
     },
     columns: [],
     columnInfo: {
       title: '',
-      description: '',
-      avatar: '',
+      desc: '',
+      picture: '',
     },
   },
   mutations: {
@@ -36,18 +36,32 @@ const store = createStore<IStore>({
       localStorage.setItem('token', token);
     },
     getUserInfo(state, payload) {
-      const { column, email, nickName, _id } = payload;
+      const { avatar, columnId, userId, email, desc, nickname } = payload;
 
       const userInfo = {
         ...state.user,
-        _id,
-        column,
-        nickName,
+        userId,
+        columnId,
+        nickname,
         email,
+        desc,
+        avatar,
       };
 
       state.user = userInfo;
       localStorage.setItem('userInfo', JSON.stringify(userInfo));
+    },
+    getColumnInfo(state, payload) {
+      const { title, desc, picture } = payload;
+
+      const columnInfo = {
+        ...state.columnInfo,
+        title,
+        desc,
+        picture
+      };
+
+      state.columnInfo = columnInfo;
     },
     logout(state, payload) {
       localStorage.removeItem('token');
@@ -81,7 +95,7 @@ const store = createStore<IStore>({
     async login(context, payload) {
       const { email, password } = payload;
 
-      const result = await request.post('/user/login', {
+      const result = await request.post('/auth/login', {
         email,
         password,
       });
@@ -93,36 +107,45 @@ const store = createStore<IStore>({
       await context.dispatch('getUserInfo');
     },
     async register(context, payload) {
-      const { email, password, nickName } = payload;
+      const { email, password, nickname } = payload;
 
-      const result = await request.post('/users', {
+      await request.post('/auth/register', {
         email,
         password,
-        nickName,
+        nickname,
       });
-
-      console.log(result);
     },
     async getUserInfo(context, payload) {
-      if (!context.state.token) {
-        return;
-      }
-
-      const {
-        data: { data: data },
-      } = await request.get('/user/current');
-      context.commit('getUserInfo', data);
-      console.log('userInfo ', data);
+      const result = await request.post('/users');
+      const { data } = result.data;
+      context.commit('getUserInfo', data.user);
     },
     async updateUserInfo(context, payload) {
-      const result = await request.patch(
-        `/user/${context.state.user._id}`,
+      const result = await request.put(
+        `/users/${context.state.user.userId}`,
         payload
       );
-      console.log("store.ts: ", result);
+      console.log('store.ts: ', result);
+    },
+    async getColumnInfo(context, payload) {
+      const result = await request.get(
+        `/columns/${context.state.user.columnId}`
+      );
+
+      const columnInfo = result.data.data.column;
+      
+      store.commit("getColumnInfo", columnInfo);
     },
     async updateColumnInfo(context, payload) {
-      const result = await request.patch(`/columns/${context.state.user.column}`, payload);
+      const result = await request.patch(
+        `/columns/${context.state.user.columnId}`,
+        payload
+      );
+      console.log(result);
+    },
+    async writePost(context, payload) {
+      console.log(payload);
+      const result = await request.post("/posts", payload);
       console.log(result);
     }
   },

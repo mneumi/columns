@@ -4,21 +4,16 @@
       <div class="title" @click="handleTitleClick">
         mneumi 专栏（仅用于演示）
       </div>
-      {{ userId }}
       <div class="feature">
         <div class="non-login" v-if="!isLogin">
           <div class="login btn" @click="handleLoginClick">登录</div>
           <div class="register btn" @click="handleRegisterClick">注册</div>
         </div>
         <div class="user-info" v-else>
-          <div class="title" @click.stop="changeShowDropdown">
+          <div class="title" @click.stop="switchDropdown">
             <span>你好，{{ username }}</span>
           </div>
-          <div class="dropdown" v-show="showDropdown" ref="dropdownRef">
-            <div class="dropdown-item">新建文章</div>
-            <div class="dropdown-item" @click="editProfile">编辑资料</div>
-            <div class="dropdown-item" @click="logout">退出登录</div>
-          </div>
+          <Dropdown ref="dropdownRef" />
         </div>
       </div>
     </div>
@@ -26,100 +21,16 @@
 </template>
 
 <script lang="ts">
-import { IStore } from "@/interface";
-import { defineComponent, ref, onMounted, onUnmounted, computed } from "vue";
+import { defineComponent, computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
-
-const useDropdown = () => {
-  const dropdownRef = ref<null | HTMLElement>(null);
-  const showDropdown = ref<boolean>(false);
-
-  const changeShowDropdown = () => {
-    showDropdown.value = !showDropdown.value;
-  };
-
-  const clickOutside = (e: MouseEvent) => {
-    if (dropdownRef.value) {
-      if (
-        !dropdownRef.value.contains(e.target as HTMLElement) &&
-        showDropdown.value
-      ) {
-        showDropdown.value = false;
-      }
-    }
-  };
-
-  onMounted(() => {
-    document.addEventListener("click", clickOutside);
-  });
-
-  onUnmounted(() => {
-    document.removeEventListener("click", clickOutside);
-  });
-
-  return {
-    dropdownRef,
-    showDropdown,
-    changeShowDropdown,
-  };
-};
-
-const useLogin = () => {
-  const router = useRouter();
-  const store = useStore<IStore>();
-
-  const isLogin = computed(() => {
-    return store.state.token !== "";
-  });
-
-  const handleLoginClick = () => {
-    router.push("/login");
-  };
-
-  return {
-    isLogin,
-    handleLoginClick,
-  };
-};
-
-const useRegister = () => {
-  const router = useRouter();
-
-  const handleRegisterClick = () => {
-    router.push("/register");
-  };
-
-  return { handleRegisterClick };
-};
-
-const useTitle = () => {
-  const router = useRouter();
-
-  const handleTitleClick = () => {
-    router.push("/");
-  };
-
-  return { handleTitleClick };
-};
-
-const useLogout = (changeShowDropdown: () => void) => {
-  const router = useRouter();
-  const store = useStore();
-
-  const logout = () => {
-    store.commit("logout");
-    router.push("/");
-    changeShowDropdown();
-  };
-
-  return { logout };
-};
+import { IStore } from "@/interface";
+import Dropdown from "./Dropdown.vue";
 
 const useUserInfo = () => {
   const store = useStore<IStore>();
 
-  if (!store.state.user.nickName) {
+  if (!store.state.user.nickname) {
     if (localStorage.getItem("userInfo") !== null) {
       const userInfo = JSON.parse(localStorage.getItem("userInfo") as string);
       store.commit("getUserInfo", userInfo);
@@ -129,71 +40,90 @@ const useUserInfo = () => {
   }
 
   const username = computed(() => {
-    return store.state.user.nickName;
+    return store.state.user.nickname;
   });
 
-  const userId = computed(() => {
-    return store.state.user._id;
+  const isLogin = computed(() => {
+    return store.state.token !== "";
   });
 
-  return { username, userId };
+  return { username, isLogin };
 };
 
-const useEditProfile = () => {
+const useHeaderBtn = () => {
   const router = useRouter();
 
-  const editProfile = () => {
-    router.push("/edit");
+  const handleTitleClick = () => {
+    router.push("/");
+  };
+
+  const handleRegisterClick = () => {
+    router.push("/register");
+  };
+
+  const handleLoginClick = () => {
+    router.push("/login");
   };
 
   return {
-    editProfile
-  }
+    handleTitleClick,
+    handleRegisterClick,
+    handleLoginClick,
+  };
+};
+
+const useDropdown = () => {
+  const dropdownRef = ref();
+
+  const switchDropdown = () => {
+    dropdownRef.value.switchDropdown();
+  };
+
+  return { dropdownRef, switchDropdown };
 };
 
 export default defineComponent({
   name: "Header",
+  components: { Dropdown },
   setup() {
-    const { dropdownRef, showDropdown, changeShowDropdown } = useDropdown();
-    const { isLogin, handleLoginClick } = useLogin();
-    const { handleRegisterClick } = useRegister();
-    const { handleTitleClick } = useTitle();
-    const { username, userId } = useUserInfo();
-    const { logout } = useLogout(changeShowDropdown);
-    const { editProfile } = useEditProfile();
+    const { username, isLogin } = useUserInfo();
+    const {
+      handleTitleClick,
+      handleRegisterClick,
+      handleLoginClick,
+    } = useHeaderBtn();
+    const { dropdownRef, switchDropdown } = useDropdown();
 
     return {
-      showDropdown,
-      changeShowDropdown,
-      dropdownRef,
       handleTitleClick,
       handleLoginClick,
       handleRegisterClick,
       isLogin,
       username,
-      userId,
-      logout,
-      editProfile
+      dropdownRef,
+      switchDropdown,
     };
   },
 });
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/colors.scss";
+
 .header-wrapper {
   width: 100%;
   height: 0.7rem;
-  background-color: #0d6efd;
+  background-color: $primary-color;
   .header {
     width: 12rem;
     height: 0.7rem;
     margin: 0 auto;
-    background-color: #0d6efd;
+    background-color: $primary-color;
     display: flex;
     align-items: center;
     justify-content: space-between;
     .title {
-      color: #fff;
+      color: $white-color;
       font-size: 0.2rem;
       margin-left: 0.16rem;
       &:hover {
@@ -211,17 +141,17 @@ export default defineComponent({
           width: 0.7rem;
           height: 0.4rem;
           font-size: 0.14rem;
-          border: 0.01rem solid #fff;
+          border: 0.01rem solid $white-color;
           display: flex;
           justify-content: center;
           align-items: center;
-          color: #fff;
+          color: $white-color;
           margin: 0 0.05rem;
           border-radius: 0.05rem;
           &:hover {
             cursor: pointer;
-            background-color: #fff;
-            color: #000;
+            background-color: $white-color;
+            color: $black-color;
           }
         }
       }
@@ -234,7 +164,7 @@ export default defineComponent({
         .title {
           font-size: 0.14rem;
           height: 0.4rem;
-          border: 0.01rem solid #fff;
+          border: 0.01rem solid $white-color;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -244,26 +174,6 @@ export default defineComponent({
           border-radius: 0.07rem;
           &:hover {
             cursor: pointer;
-          }
-        }
-        .dropdown {
-          width: 1.1rem;
-          position: absolute;
-          background-color: #fff;
-          padding: 0.16rem;
-          left: 0.09rem;
-          top: 0.6rem;
-          border: 0.01rem solid #999;
-          border-radius: 0.05rem;
-          z-index: 100;
-          .dropdown-item {
-            margin-bottom: 0.16rem;
-            &:hover {
-              cursor: pointer;
-            }
-            &:last-child {
-              margin: 0;
-            }
           }
         }
       }

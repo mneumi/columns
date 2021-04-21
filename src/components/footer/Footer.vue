@@ -20,10 +20,12 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/colors.scss";
+
 .footer-wrapper {
   width: 100%;
   height: 0.7rem;
-  background-color: #f8f9fa;
+  background-color: $light-white-color;
   position: absolute;
   bottom: 0;
   display: flex;

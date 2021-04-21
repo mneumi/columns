@@ -21,6 +21,8 @@
       <div class="date">发表于：2020-08-21 19:20:00</div>
     </div>
     <div class="content" v-html="content"></div>
+    <div>编辑文章</div>
+    <div>删除文章</div>
   </div>
 </template>
 
@@ -38,6 +40,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/colors.scss";
+
 .post-wrapper {
   width: 100%;
   display: flex;
@@ -53,7 +57,7 @@ export default defineComponent({
     line-height: 0.5rem;
     padding-left: 0.2rem;
     box-sizing: border-box;
-    color: #6c757d;
+    color: $light-grey-color;
   }
   .header-img {
     width: 8rem;
@@ -66,8 +70,8 @@ export default defineComponent({
   }
   .author {
     width: 8rem;
-    border-top: 0.01rem solid #dee2e6;
-    border-bottom: 0.01rem solid #dee2e6;
+    border-top: 0.01rem solid $middle-grey-color;
+    border-bottom: 0.01rem solid $middle-grey-color;
     display: flex;
     align-items: center;
     padding: 0.25rem 0;
@@ -81,12 +85,12 @@ export default defineComponent({
       flex: 1;
       line-height: 0.24rem;
       .author-desc {
-        color: #6c757d;
+        color: $light-grey-color;
       }
     }
     .date {
       font-style: italic;
-      color: #6c757d;
+      color: $light-grey-color;
     }
   }
   .content {

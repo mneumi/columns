@@ -1,8 +1,11 @@
 <template>
   <div
-    class="message-wrapper"
     v-if="showMessage"
-    :class="{ error: msgType === 'error', success: msgType === 'success' }"
+    :class="{
+      'message-wrapper': true,
+      error: msgType === 'error',
+      success: msgType === 'success',
+    }"
   >
     <div class="content">{{ msg }}</div>
     <div class="close" @click="showMessage = false">X</div>
@@ -16,12 +19,17 @@ import { MessageType } from "@/interface";
 export const createMessage = (
   msg: string,
   msgType: MessageType,
-  timeout = 20000
+  callback?: () => void,
+  timeout?: number
 ): void => {
   const msgInstance = createApp(Message, {
     msg,
     msgType,
   });
+
+  if (!timeout) {
+    timeout = 2000;
+  }
 
   const msgDOM = document.createElement("div");
   document.body.appendChild(msgDOM);
@@ -30,6 +38,9 @@ export const createMessage = (
   setTimeout(() => {
     msgInstance.unmount();
     document.body.removeChild(msgDOM);
+    if (callback) {
+      callback();
+    }
   }, timeout);
 };
 
@@ -56,13 +67,15 @@ export default Message;
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/colors.scss";
+
 .message-wrapper {
   position: fixed;
   top: 0.5rem;
   left: 50%;
   transform: translateX(-50%);
-  background-color: grey;
-  color: #fff;
+  background-color: $grey-color;
+  color: $white-color;
   display: flex;
   border-radius: 0.05rem;
   padding: 0.15rem;
@@ -80,9 +93,9 @@ export default Message;
   }
 }
 .error {
-  background-color: grey !important;
+  background-color: $error-color !important;
 }
 .success {
-  background-color: green !important;
+  background-color: $success-color !important;
 }
 </style>

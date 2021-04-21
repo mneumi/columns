@@ -1,14 +1,12 @@
 <template>
   <teleport to="#loading">
-    <div class="loading-wrapper" v-show="isLoading">
-      网络请求中，请稍后 ...
-    </div>
+    <div class="loading-wrapper" v-show="isLoading">网络请求中，请稍后 ...</div>
   </teleport>
 </template>
 
 <script lang="ts">
-import { useStore } from "vuex";
 import { computed, defineComponent } from "vue";
+import { useStore } from "vuex";
 import { IStore } from "@/interface";
 
 export default defineComponent({
@@ -20,18 +18,18 @@ export default defineComponent({
       return store.state.loading > 0;
     });
 
-    return {
-      isLoading,
-    };
+    return { isLoading };
   },
 });
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/colors.scss";
+
 .loading-wrapper {
   width: 100vw;
   height: 100vh;
-  background-color: rgba(255, 255, 255, 0.95);
+  background-color: $loading-background;
   position: fixed;
   left: 0;
   top: 0;
@@ -39,7 +37,7 @@ export default defineComponent({
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: .4rem;
-  color: black;
+  font-size: 0.4rem;
+  color: $black-color;
 }
 </style>

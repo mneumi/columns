@@ -43,8 +43,9 @@
         >
           <ValidateInput
             placeholder="请输入昵称"
-            v-model="nickNamedVal"
-            :rules="nickNameRules"
+            v-model="nicknamedVal"
+            :rules="nicknameRules"
+            title="设置昵称"
           />
           <ValidateInput
             :inputType="'textarea'"
@@ -52,6 +53,7 @@
             rows="10"
             v-model="userDescVal"
             :rules="userDescRules"
+            title="设置简介"
           />
         </ValidateForm>
       </template>
@@ -79,15 +81,16 @@
             </template>
           </Upload>
         </div>
-        <ValidateForm 
-          btnName="提交修改" 
+        <ValidateForm
+          btnName="提交修改"
           btnWidth="1.1rem"
           @form-submit="submitColumnForm"
         >
           <ValidateInput
             placeholder="请输入专栏名称"
-            v-model="columnNamedVal"
+            v-model="columnNameVal"
             :rules="columnNameRules"
+            title="设置专栏名称"
           />
           <ValidateInput
             :inputType="'textarea'"
@@ -95,6 +98,7 @@
             rows="10"
             v-model="columnDescVal"
             :rules="columnDescRules"
+            title="设置专栏简介"
           />
         </ValidateForm>
       </template>
@@ -103,7 +107,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, onMounted, ref, watch } from "vue";
+import { createMessage } from "@/components/message/Message.vue";
 import { useStore } from "vuex";
 import ValidateForm from "@/components/validate-form/ValidateForm.vue";
 import ValidateInput, {
@@ -111,6 +116,7 @@ import ValidateInput, {
 } from "@/components/validate-form/ValidateInput.vue";
 import Upload from "@/components/upload/Upload.vue";
 import { IStore } from "@/interface";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
   name: "Edit",
@@ -120,17 +126,22 @@ export default defineComponent({
     Upload,
   },
   setup() {
+    const router = useRouter();
     const store = useStore<IStore>();
     const tabIndex = ref(0);
     const tabList = ["更新个人资料", "更新专栏信息"];
     const changeTabIndex = (index: number) => (tabIndex.value = index);
 
-    const nickName = store.state.user.nickName;
+    onMounted(() => {
+      store.dispatch("getColumnInfo");
+    });
 
-    const userDesc = store.state.user.description;
+    const nickname = store.state.user.nickname;
 
-    const nickNamedVal = ref<string>(nickName);
-    const nickNameRules: RulesProp = [
+    const userDesc = store.state.user.desc;
+
+    const nicknamedVal = ref<string>(nickname);
+    const nicknameRules: RulesProp = [
       {
         type: "required",
         message: "昵称不能为空",
@@ -138,7 +149,7 @@ export default defineComponent({
       {
         type: "custom",
         message: "昵称长度不能超过10位",
-        validator: () => nickNamedVal.value.length <= 10,
+        validator: () => nicknamedVal.value.length <= 10,
       },
     ];
 
@@ -155,7 +166,7 @@ export default defineComponent({
       },
     ];
 
-    const columnNamedVal = ref<string>("");
+    const columnNameVal = ref<string>(store.state.columnInfo.title);
     const columnNameRules: RulesProp = [
       {
         type: "required",
@@ -164,11 +175,11 @@ export default defineComponent({
       {
         type: "custom",
         message: "专栏名称长度不能超过10位",
-        validator: () => columnNamedVal.value.length <= 10,
+        validator: () => columnNameVal.value.length <= 10,
       },
     ];
 
-    const columnDescVal = ref<string>("");
+    const columnDescVal = ref<string>(store.state.columnInfo.desc);
     const columnDescRules: RulesProp = [
       {
         type: "required",
@@ -181,7 +192,15 @@ export default defineComponent({
       },
     ];
 
-    const userAvatarUrl = ref<string>("");
+    watch(
+      () => store.state.columnInfo,
+      (columnInfo) => {
+        columnNameVal.value = columnInfo.title;
+        columnDescVal.value = columnInfo.desc;
+      }
+    );
+
+    const userAvatarUrl = ref<string>(store.state.user.avatar);
 
     const handleUserAvatarUploadedSuccess = (data: any) => {
       userAvatarUrl.value = data.data.url;
@@ -203,15 +222,27 @@ export default defineComponent({
 
     const submitUserForm = (result: boolean) => {
       if (result) {
-        const payload = {
-          ...store.state.user,
-          nickName: nickNamedVal.value,
-          description: userDescVal.value,
-          avatar: userAvatarUrl.value,
-        };
-        store.dispatch("updateUserInfo", payload);
+        try {
+          const payload = {
+            ...store.state.user,
+            nickname: nicknamedVal.value,
+            desc: userDescVal.value,
+            avatar: userAvatarUrl.value,
+          };
+          store.dispatch("updateUserInfo", payload);
+          console.log("??", store.state.user);
+          createMessage("登录成功，2秒后跳转到主页", "success", () =>
+            router.push("/")
+          );
+        } catch (err) {
+          const errContent = err.data?.message || "网络发生错误";
+          store.commit("setMessage", { content: errContent, type: "error" });
+        }
       } else {
-        console.log("no pass");
+        store.commit("setMessage", {
+          content: "表单填写有误，请检查",
+          type: "error",
+        });
       }
     };
 
@@ -219,7 +250,7 @@ export default defineComponent({
       if (result) {
         const payload = {
           ...store.state.columnInfo,
-          title: columnNamedVal.value,
+          title: columnNameVal.value,
           description: columnDescVal.value,
           avatar: columnAvatarUrl.value,
         };
@@ -239,11 +270,11 @@ export default defineComponent({
       columnDescVal,
       columnDescRules,
       columnNameRules,
-      columnNamedVal,
+      columnNameVal,
       userDescVal,
       userDescRules,
-      nickNameRules,
-      nickNamedVal,
+      nicknameRules,
+      nicknamedVal,
       handleUserAvatarUploadedSuccess,
       handleUserAvatarUploadedError,
       userAvatarUrl,

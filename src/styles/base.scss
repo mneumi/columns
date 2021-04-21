@@ -1,9 +1,11 @@
+@import "./colors.scss";
+
 html {
   font-size: 100px;
 }
 
 body {
-  font-size: .16rem;
+  font-size: 0.16rem;
 }
 
 #app {
@@ -14,15 +16,15 @@ body {
 a {
   text-decoration: none;
   &:link {
-    color: #0d6efd;
+    color: $primary-color;
   }
   &:visited {
-    color: #0d6efd;
+    color: $primary-color;
   }
   &:hover {
-    color: #0d6efd;
+    color: $primary-color;
   }
   &:active {
-    color: #0d6efd;
+    color: $primary-color;
   }
 }

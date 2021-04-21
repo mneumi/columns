@@ -10,7 +10,6 @@
           </div>
           <div class="title">{{ item.title }}</div>
           <div class="desc">{{ item.description }}</div>
-
           <div class="btn" @click="() => enterColumn(item._id)">进入专栏</div>
         </div>
       </template>
@@ -19,12 +18,11 @@
 </template>
 
 <script lang="ts">
-import { useStore } from "vuex";
 import { computed, defineComponent, onMounted } from "vue";
-
-import Slogn from "./Slogn.vue";
-import { IStore } from "@/interface";
 import { useRouter } from "vue-router";
+import { useStore } from "vuex";
+import { IStore } from "@/interface";
+import Slogn from "./Slogn.vue";
 
 export default defineComponent({
   name: "Home",
@@ -49,6 +47,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/colors.scss";
+
 .column-list-wrapper {
   width: 100%;
   display: flex;
@@ -74,11 +74,11 @@ export default defineComponent({
       box-sizing: border-box;
       padding: 0.3rem 0.3rem;
       border-radius: 0.08rem;
-      background-color: #fff;
+      background-color: $white-color;
       display: flex;
       flex-direction: column;
       align-items: center;
-      border: 0.01rem solid rgba(0, 0, 0, 0.125);
+      border: 0.01rem solid $light-black-color;
       position: relative;
       margin-bottom: 0.3rem;
       .avatar {
@@ -93,18 +93,18 @@ export default defineComponent({
         font-size: 0.2rem;
       }
       .desc {
-        color: #6c757d;
+        color: $light-grey-color;
       }
       .btn {
         padding: 0.1rem;
         border-radius: 0.06rem;
-        border: 0.01rem solid #0d6efd;
-        color: #0d6efd;
+        border: 0.01rem solid $primary-color;
+        color: $primary-color;
         position: absolute;
         bottom: 0.2rem;
         &:hover {
-          background-color: #0d6efd;
-          color: #fff;
+          background-color: $primary-color;
+          color: $white-color;
           cursor: pointer;
         }
       }

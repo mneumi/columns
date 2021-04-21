@@ -14,8 +14,8 @@
         />
         <ValidateInput
           title="昵称"
-          :rules="nickNameRules"
-          v-model="nickNameVal"
+          :rules="nicknameRules"
+          v-model="nicknameVal"
           placeholder="请输入昵称"
         />
         <ValidateInput
@@ -28,8 +28,8 @@
         <ValidateInput
           type="password"
           :title="'确认密码'"
-          :rules="confirmPasswordRules"
-          v-model="confirmPasswordVal"
+          :rules="confirmRules"
+          v-model="confirmVal"
           placeholder="请再次确认密码"
         />
         <router-link to="/login">
@@ -41,94 +41,133 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, Ref } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
-
 import ValidateInput, {
   RulesProp,
 } from "@/components/validate-form/ValidateInput.vue";
-
 import ValidateForm from "@/components/validate-form/ValidateForm.vue";
 
-export default defineComponent({
-  name: "Login",
-  components: { ValidateInput, ValidateForm },
-  setup() {
-    const router = useRouter();
-    const store = useStore();
+const useEmailInput = () => {
+  const emailVal = ref<string>("");
+  const emailRules: RulesProp = [
+    {
+      type: "required",
+      message: "邮箱不能为空",
+    },
+    {
+      type: "email",
+      message: "邮箱不符合要求",
+    },
+  ];
 
-    const emailVal = ref<string>("");
-    const emailRules: RulesProp = [
-      {
-        type: "required",
-        message: "邮箱不能为空",
-      },
-      {
-        type: "email",
-        message: "邮箱不符合要求",
-      },
-    ];
+  return { emailVal, emailRules };
+};
 
-    const nickNameVal = ref<string>("");
-    const nickNameRules: RulesProp = [
-      {
-        type: "required",
-        message: "昵称不能为空",
-      },
-      {
-        type: "custom",
-        validator: () => nickNameVal.value.trim().length >= 6,
-        message: "昵称长度要大于等于6位",
-      },
-    ];
+const useNicknameInput = () => {
+  const nicknameVal = ref<string>("");
+  const nicknameRules: RulesProp = [
+    {
+      type: "required",
+      message: "昵称不能为空",
+    },
+    {
+      type: "custom",
+      validator: () => nicknameVal.value.trim().length >= 6,
+      message: "昵称长度要大于等于6位",
+    },
+  ];
 
-    const passwordVal = ref<string>("");
-    const passwordRules: RulesProp = [
-      {
-        type: "required",
-        message: "密码不能为空",
-      },
-      {
-        type: "custom",
-        validator: () => passwordVal.value.trim().length >= 6,
-        message: "密码长度不能少于6",
-      },
-    ];
+  return { nicknameVal, nicknameRules };
+};
 
-    const confirmPasswordVal = ref<string>("");
-    const confirmPasswordRules: RulesProp = [
-      {
-        type: "required",
-        message: "确认密码不能为空",
-      },
-      {
-        type: "custom",
-        validator: () => passwordVal.value === confirmPasswordVal.value,
-        message: "确认密码与密码不一致",
-      },
-    ];
+const usePasswordInput = () => {
+  const passwordVal = ref<string>("");
+  const passwordRules: RulesProp = [
+    {
+      type: "required",
+      message: "密码不能为空",
+    },
+    {
+      type: "custom",
+      validator: () => passwordVal.value.trim().length >= 6,
+      message: "密码长度不能少于6",
+    },
+  ];
 
-    const formSubmit = async (result: boolean) => {
-      if (result) {
+  return { passwordVal, passwordRules };
+};
+
+const useConfirmInput = (passwordVal: Ref<string>) => {
+  const confirmVal = ref<string>("");
+  const confirmRules: RulesProp = [
+    {
+      type: "required",
+      message: "确认密码不能为空",
+    },
+    {
+      type: "custom",
+      validator: () => passwordVal.value === confirmVal.value,
+      message: "确认密码与密码不一致",
+    },
+  ];
+
+  return { confirmVal, confirmRules };
+};
+
+const useFormSubmit = (
+  emailVal: Ref<string>,
+  passwordVal: Ref<string>,
+  nicknameVal: Ref<string>
+) => {
+  const router = useRouter();
+  const store = useStore();
+
+  const formSubmit = async (result: boolean) => {
+    if (result) {
+      try {
         await store.dispatch("register", {
           email: emailVal.value,
           password: passwordVal.value,
-          nickName: nickNameVal.value,
+          nickname: nicknameVal.value,
         });
-        router.push("/");
+        store.commit("setMessage", {
+          content: "注册成功，2秒后自动跳转到登录页面",
+          type: "success",
+        });
+        setTimeout(() => {
+          router.push("/login");
+        }, 2000);
+      } catch (err) {
+        const errContent = err.data?.message || "网络发生错误";
+        store.commit("setMessage", { content: errContent, type: "error" });
       }
-    };
+    }
+  };
+
+  return { formSubmit };
+};
+
+export default defineComponent({
+  name: "Register",
+  components: { ValidateInput, ValidateForm },
+  setup() {
+    const { emailVal, emailRules } = useEmailInput();
+    const { nicknameVal, nicknameRules } = useNicknameInput();
+    const { passwordVal, passwordRules } = usePasswordInput();
+    const { confirmVal, confirmRules } = useConfirmInput(passwordVal);
+    const { formSubmit } = useFormSubmit(emailVal, passwordVal, nicknameVal);
 
     return {
       emailVal,
       emailRules,
+      nicknameVal,
+      nicknameRules,
       passwordVal,
       passwordRules,
-      confirmPasswordVal,
-      confirmPasswordRules,
-      nickNameVal,
-      nickNameRules,
+      confirmVal,
+      confirmRules,
       formSubmit,
     };
   },
@@ -136,6 +175,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/colors.scss";
+
 .register-wrapper {
   width: 100%;
   display: flex;
@@ -145,7 +186,7 @@ export default defineComponent({
     width: 6rem;
     margin-top: 0.6rem;
     .link {
-      color: #0d6efd;
+      color: $primary-color;
       margin: 0.2rem 0;
       &:hover {
         cursor: pointer;

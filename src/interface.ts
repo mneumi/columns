@@ -14,17 +14,17 @@ export interface IStore {
 
 export interface IColumnInfo {
   title: string;
-  description: string;
-  avatar: string;
+  desc: string;
+  picture: string;
 }
 
 export interface IUser {
-  _id: string;
+  userId: string;
   email: string;
-  nickName: string;
-  description: string;
+  nickname: string;
+  desc: string;
   avatar: string;
-  column: string;
+  columnId: string;
 }
 
 export interface IImage {

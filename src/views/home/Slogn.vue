@@ -7,8 +7,9 @@
 </template>
 
 <script lang="ts">
-import { useRouter } from "vue-router";
 import { defineComponent } from "vue";
+
+import { useRouter } from "vue-router";
 
 export default defineComponent({
   name: "Slogn",
@@ -16,7 +17,7 @@ export default defineComponent({
     const router = useRouter();
 
     const handleClick = () => {
-      router.push("/create");
+      router.push("/write");
     };
 
     return { handleClick };
@@ -25,6 +26,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/colors.scss";
+
 .slogn-wrapper {
   width: 100%;
   padding-top: 0.7rem;
@@ -43,14 +46,14 @@ export default defineComponent({
   .btn {
     width: 1.2rem;
     height: 0.5rem;
-    background-color: #0d6efd;
+    background-color: $primary-color;
     line-height: 0.5rem;
     text-align: center;
     border-radius: 0.04rem;
-    color: #fff;
+    color: $white-color;
     margin-top: 0.4rem;
     &:hover {
-      background-color: darken(#0d6efd, 10%);
+      background-color: darken($primary-color, 10%);
       cursor: pointer;
     }
   }

@@ -6,10 +6,10 @@
     </form>
     <div
       class="btn"
+      ref="submitRef"
       v-if="btnName"
       :style="{ width: btnWidth }"
       @click="submitForm"
-      ref="submitRef"
     >
       {{ btnName }}
     </div>
@@ -17,12 +17,53 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, onUnmounted, ref } from "vue";
+import { defineComponent, onMounted, onUnmounted } from "vue";
 import mitt from "mitt";
 
 type ValidateFunc = () => boolean;
 
 export const emitter = mitt();
+
+const useKeyboardInput = (submitForm: () => void) => {
+  const keyEnterSubmit = (event: KeyboardEvent) => {
+    if (event.code === "Enter") {
+      submitForm();
+    }
+  };
+
+  onMounted(() => {
+    document.addEventListener("keypress", keyEnterSubmit);
+  });
+
+  onUnmounted(() => {
+    document.removeEventListener("keypress", keyEnterSubmit);
+  });
+};
+
+const useEmitter = () => {
+  const funcArray: ValidateFunc[] = [];
+
+  const callback = (func: ValidateFunc | undefined) => {
+    if (func) {
+      funcArray.push(func);
+    }
+  };
+
+  const clearArray = (arr: ValidateFunc[]) => {
+    while (arr.length) {
+      arr.pop();
+    }
+  };
+
+  emitter.on("form-item-created", callback);
+
+  onUnmounted(() => {
+    emitter.off("form-item-created", callback);
+    clearArray(funcArray);
+  });
+
+  return { funcArray };
+};
 
 export default defineComponent({
   name: "ValidateForm",
@@ -42,39 +83,15 @@ export default defineComponent({
       default: "100%",
     },
   },
-  setup(props, context) {
-    let funcArray: ValidateFunc[] = [];
-
-    const callback = (func: ValidateFunc | undefined) => {
-      if (func) {
-        funcArray.push(func);
-      }
-    };
+  setup(props, { emit }) {
+    const { funcArray } = useEmitter();
 
     const submitForm = () => {
       const result = funcArray.map((func) => func()).every((result) => result);
-      context.emit("form-submit", result);
+      emit("form-submit", result);
     };
 
-    emitter.on("form-item-created", callback);
-    onUnmounted(() => {
-      emitter.off("form-item-created", callback);
-      funcArray = [];
-    });
-
-    const keyEnterSubmit = (event: KeyboardEvent) => {
-      if (event.code === "Enter") {
-        submitForm();
-      }
-    };
-
-    onMounted(() => {
-      document.addEventListener("keypress", keyEnterSubmit);
-    });
-
-    onUnmounted(() => {
-      document.removeEventListener("keypress", keyEnterSubmit);
-    })
+    useKeyboardInput(submitForm);
 
     return { submitForm };
   },
@@ -82,6 +99,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/colors.scss";
+
 .validate-form-wrapper {
   display: flex;
   flex-direction: column;
@@ -92,11 +111,11 @@ export default defineComponent({
   }
   .btn {
     padding: 0.15rem 0;
-    background-color: #0d6efd;
+    background-color: $primary-color;
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #fff;
+    color: $white-color;
     border-radius: 0.06rem;
     margin-top: 0.2rem;
     &:hover {

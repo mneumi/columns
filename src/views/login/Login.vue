@@ -28,56 +28,75 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
-
+import { defineComponent, ref, Ref } from "vue";
+import { useRouter } from "vue-router";
+import { useStore } from "vuex";
+import { IStore } from "@/interface";
+import { createMessage } from "@/components/message/Message.vue";
 import ValidateInput, {
   RulesProp,
 } from "../../components/validate-form/ValidateInput.vue";
-
 import ValidateForm from "../../components/validate-form/ValidateForm.vue";
-import { useStore } from "vuex";
-import { useRouter } from "vue-router";
-import { IStore } from "@/interface";
-import { createMessage } from '@/components/message/Message.vue';
+
+const useEmailInput = () => {
+  const emailVal = ref<string>("");
+  const emailRules: RulesProp = [
+    {
+      type: "required",
+      message: "邮箱不能为空",
+    },
+    {
+      type: "email",
+      message: "不满足邮箱格式",
+    },
+  ];
+
+  return { emailVal, emailRules };
+};
+
+const usePasswordInput = () => {
+  const passwordVal = ref<string>("");
+  const passwordRules: RulesProp = [
+    {
+      type: "required",
+      message: "密码不能为空",
+    },
+  ];
+
+  return { passwordVal, passwordRules };
+};
+
+const useFormSubmit = (emailVal: Ref<string>, passwordVal: Ref<string>) => {
+  const store = useStore<IStore>();
+  const router = useRouter();
+
+  const formSubmit = async (result: boolean) => {
+    if (result) {
+      try {
+        await store.dispatch("login", {
+          email: emailVal.value,
+          password: passwordVal.value,
+        });
+        createMessage("登录成功，2秒后跳转到主页", "success", () =>
+          router.push("/")
+        );
+      } catch (err) {
+        const errContent = err.data?.message || "网络发生错误";
+        store.commit("setMessage", { content: errContent, type: "error" });
+      }
+    }
+  };
+
+  return { formSubmit };
+};
 
 export default defineComponent({
   name: "Login",
   components: { ValidateInput, ValidateForm },
   setup() {
-    const store = useStore<IStore>();
-    const router = useRouter();
-    const emailVal = ref<string>("");
-    const emailRules: RulesProp = [
-      {
-        type: "required",
-        message: "邮箱不能为空",
-      },
-      {
-        type: "email",
-        message: "不满足邮箱格式",
-      },
-    ];
-
-    const passwordVal = ref<string>("");
-    const passwordRules: RulesProp = [
-      {
-        type: "required",
-        message: "密码不能为空",
-      },
-    ];
-
-    const formSubmit = async (result: boolean) => {
-      if (result) {
-        await store.dispatch("login", {
-          email: emailVal.value,
-          password: passwordVal.value,
-        });
-        createMessage("登录成功，2秒后跳转到主页", "success", 2000);
-        setTimeout(() => {
-          router.push("/");
-        }, 2000);
-      }
-    };
+    const { emailVal, emailRules } = useEmailInput();
+    const { passwordVal, passwordRules } = usePasswordInput();
+    const { formSubmit } = useFormSubmit(emailVal, passwordVal);
 
     return {
       emailVal,
@@ -91,6 +110,8 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+@import "@/styles/colors.scss";
+
 .login-wrapper {
   width: 100%;
   display: flex;
@@ -100,7 +121,7 @@ export default defineComponent({
     width: 6rem;
     margin-top: 0.6rem;
     .link {
-      color: #0d6efd;
+      color: $primary-color;
       margin: 0.2rem 0;
       &:hover {
         cursor: pointer;

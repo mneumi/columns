@@ -2,7 +2,7 @@
   <div class="file-upload">
     <input
       type="file"
-      name="file"
+      name="myFile"
       class="none"
       ref="fileInput"
       @change="handleFileChange"
@@ -11,11 +11,7 @@
       <slot v-if="fileUploadStatus === 'uploading'" name="uploading">
         <span>正在上传...</span>
       </slot>
-      <slot
-        v-else-if="fileUploadStatus === 'success'"
-        name="success"
-        :uploadedData="uploadedData"
-      >
+      <slot v-else-if="fileUploadStatus === 'success'" name="success">
         <span>上传成功！</span>
       </slot>
       <slot v-else-if="fileUploadStatus === 'error'" name="error">
@@ -33,7 +29,6 @@ import { PropType, ref, defineComponent } from "vue";
 import axios from "axios";
 
 type UploadStatus = "ready" | "uploading" | "success" | "error";
-
 type BeforeUploadFunction = (file: File) => boolean;
 
 export default defineComponent({
@@ -52,19 +47,17 @@ export default defineComponent({
 
     const triggerUpload = () => {
       if (fileInput.value) {
-        fileInput.value.click(); // 通过代码触发隐藏的 input 控件
+        fileInput.value.click();
       }
     };
 
-    const fileUploadStatus = ref<UploadStatus>("ready"); // 初始状态为 ready
-
-    const uploadedData = ref();
+    const fileUploadStatus = ref<UploadStatus>("ready");
 
     const handleFileChange = (e: Event) => {
       const target = e.target as HTMLInputElement;
 
       if (target.files) {
-        const files = Array.from(target.files); // 伪数组转为数组
+        const files = Array.from(target.files);
         const uploadFile = files[0];
 
         if (props.beforeUpload) {
@@ -74,7 +67,7 @@ export default defineComponent({
           }
         }
 
-        fileUploadStatus.value = "uploading"; // 更改状态为 uploading
+        fileUploadStatus.value = "uploading";
 
         const formData = new FormData();
         formData.append(uploadFile.name, uploadFile);
@@ -86,17 +79,16 @@ export default defineComponent({
             },
           })
           .then((res) => {
-            fileUploadStatus.value = "success"; // 更改状态为 success
-            uploadedData.value = res.data;
+            fileUploadStatus.value = "success";
             context.emit("uploaded-success", res.data);
           })
           .catch((err) => {
-            fileUploadStatus.value = "error"; // 更改状态为 error
+            fileUploadStatus.value = "error";
             context.emit("uploaded-error", err);
           })
           .finally(() => {
             if (fileInput.value) {
-              fileInput.value.value = ""; // 重置 input标签的值
+              fileInput.value.value = "";
             }
           });
       }
@@ -106,7 +98,6 @@ export default defineComponent({
       fileInput,
       triggerUpload,
       handleFileChange,
-      uploadedData,
       fileUploadStatus,
     };
   },
@@ -120,6 +111,6 @@ export default defineComponent({
   align-items: center;
 }
 .none {
-  display: none; /* 隐藏 input 按钮 */
+  display: none;
 }
 </style>
