@@ -5,49 +5,82 @@
       <div class="content">{{ content }}</div>
       <div class="controller">
         <div class="cancel btn" @click="closeModel">{{ cancelText }}</div>
-        <div class="confirm btn">{{ confirmText }}</div>
+        <div class="confirm btn" @click="confirmModel">{{ confirmText }}</div>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, createApp, PropType } from "vue";
 
-export default defineComponent({
+const Model = defineComponent({
   name: "Model",
-  props: {
-    title: {
-      type: String,
-      required: true,
-    },
-    content: {
-      type: String,
-      required: true,
-    },
-    confirmText: {
-      type: String,
-      required: false,
-      default: "确认",
-    },
-    cancelText: {
-      type: String,
-      required: false,
-      default: "取消",
-    },
-  },
   emits: ["confirm", "cancel"],
-  setup(props, { emit }) {
-    const showModel = ref<boolean>(true);
+  props: {
+    title: { type: String, required: true },
+    content: { type: String, required: true },
+    confirmText: { type: String, required: true },
+    cancelText: { type: String, required: true },
+    confirmCb: { type: Function as PropType<callbackType>, required: true },
+    cancelCb: { type: Function as PropType<callbackType>, required: false },
+  },
+  setup(props) {
+    const { showModel, closeModel, confirmModel } = useModel(
+      props.confirmCb,
+      props.cancelCb
+    );
 
-    const closeModel = () => {
-      showModel.value = false;
-      emit("cancel");
-    };
-
-    return { showModel, closeModel };
+    return { showModel, closeModel, confirmModel };
   },
 });
+
+type callbackType = () => void;
+
+const useModel = (
+  confirmCb: callbackType,
+  cancelCb: callbackType | undefined
+) => {
+  const showModel = ref<boolean>(true);
+
+  const closeModel = () => {
+    showModel.value = false;
+    if (cancelCb) {
+      cancelCb();
+    }
+  };
+
+  const confirmModel = () => {
+    showModel.value = false;
+    confirmCb();
+  };
+
+  return { showModel, closeModel, confirmModel };
+};
+
+export const createModel = (
+  title: string,
+  content: string,
+  confirmText: string,
+  cancelText: string,
+  confirmCb: callbackType,
+  cancelCb?: callbackType
+): void => {
+  const msgInstance = createApp(Model, {
+    title,
+    content,
+    confirmText,
+    cancelText,
+    confirmCb,
+    cancelCb,
+  });
+
+  const modelDOM = document.createElement("div");
+  document.body.appendChild(modelDOM);
+  msgInstance.mount(modelDOM);
+};
+
+export default Model;
 </script>
 
 <style lang="scss" scoped>
@@ -96,7 +129,7 @@ export default defineComponent({
       .btn {
         margin: 0 0.1rem;
         background-color: $error-color;
-        padding: 0.05rem 0.1rem;
+        padding: 0.12rem 0.1rem;
         border-radius: 0.04rem;
         color: $white-color;
         &:hover {

@@ -42,7 +42,7 @@ axios.interceptors.request.use((config) => {
 
 axios.interceptors.response.use(
   (response) => {
-    if (!response.config.url?.includes("/upload")) {
+    if (!response.config.url?.includes('/upload')) {
       store.commit('minusLoading');
     }
     return response;

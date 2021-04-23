@@ -18,7 +18,6 @@ const store = createStore<IStore>({
       avatar: '',
       columnId: '',
     },
-    columns: [],
     columnInfo: {
       title: '',
       desc: '',
@@ -28,7 +27,6 @@ const store = createStore<IStore>({
   mutations: {
     fetchColumns(state, payload) {
       const { columns } = payload;
-      state.columns = columns;
     },
     login(state, payload) {
       const { token } = payload;
@@ -58,7 +56,7 @@ const store = createStore<IStore>({
         ...state.columnInfo,
         title,
         desc,
-        picture
+        picture,
       };
 
       state.columnInfo = columnInfo;
@@ -133,8 +131,8 @@ const store = createStore<IStore>({
       );
 
       const columnInfo = result.data.data.column;
-      
-      store.commit("getColumnInfo", columnInfo);
+
+      store.commit('getColumnInfo', columnInfo);
     },
     async updateColumnInfo(context, payload) {
       const result = await request.patch(
@@ -144,10 +142,8 @@ const store = createStore<IStore>({
       console.log(result);
     },
     async writePost(context, payload) {
-      console.log(payload);
-      const result = await request.post("/posts", payload);
-      console.log(result);
-    }
+      const result = await request.post('/posts', payload);
+    },
   },
 });
 

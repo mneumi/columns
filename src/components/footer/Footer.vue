@@ -1,12 +1,20 @@
 <template>
   <div class="footer-wrapper">
     <div class="footer">
+      <div>
+        &copy; mneumi (mneumi.cn) 版权所有 | 此仅为展示使用，不涉及商业用途 |
+      </div>
       <span
-        >&copy; mneumi (mneumi.cn) 版权所有 |
-        此仅为展示使用，不涉及任何商业用途 | </span
+        ><a href="https://beian.miit.gov.cn/#/Integrated/index"
+          >粤ICP备20058567号-1</a
+        ></span
       >
-      <span><a href="https://beian.miit.gov.cn/#/Integrated/index">粤ICP备20058567号-1</a></span>
-      <span><a href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=44010602008696">粤公网安备44010602008696号</a></span>
+      <span
+        ><a
+          href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=44010602008696"
+          >粤公网安备44010602008696号</a
+        ></span
+      >
     </div>
   </div>
 </template>
@@ -36,10 +44,10 @@ export default defineComponent({
     display: flex;
     justify-content: center;
     align-items: center;
-    line-height: .7rem;
+    line-height: 0.7rem;
     a {
-      font-size: .12rem;
-      margin-left: .1rem;
+      font-size: 0.12rem;
+      margin-left: 0.1rem;
     }
   }
 }

@@ -16,6 +16,25 @@
 import { defineComponent, PropType, ref, createApp } from "vue";
 import { MessageType } from "@/interface";
 
+const Message = defineComponent({
+  name: "Message",
+  props: {
+    msg: {
+      type: String,
+      required: true,
+    },
+    msgType: {
+      type: String as PropType<MessageType>,
+      required: true,
+    },
+  },
+  setup() {
+    const showMessage = ref<boolean>(true);
+
+    return { showMessage };
+  },
+});
+
 export const createMessage = (
   msg: string,
   msgType: MessageType,
@@ -43,25 +62,6 @@ export const createMessage = (
     }
   }, timeout);
 };
-
-const Message = defineComponent({
-  name: "Message",
-  props: {
-    msg: {
-      type: String,
-      required: true,
-    },
-    msgType: {
-      type: String as PropType<MessageType>,
-      required: true,
-    },
-  },
-  setup() {
-    const showMessage = ref<boolean>(true);
-
-    return { showMessage };
-  },
-});
 
 export default Message;
 </script>

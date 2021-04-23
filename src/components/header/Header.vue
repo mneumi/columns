@@ -27,6 +27,30 @@ import { useStore } from "vuex";
 import { IStore } from "@/interface";
 import Dropdown from "./Dropdown.vue";
 
+export default defineComponent({
+  name: "Header",
+  components: { Dropdown },
+  setup() {
+    const { username, isLogin } = useUserInfo();
+    const {
+      handleTitleClick,
+      handleRegisterClick,
+      handleLoginClick,
+    } = useHeaderClick();
+    const { dropdownRef, switchDropdown } = useDropdown();
+
+    return {
+      handleTitleClick,
+      handleLoginClick,
+      handleRegisterClick,
+      isLogin,
+      username,
+      dropdownRef,
+      switchDropdown,
+    };
+  },
+});
+
 const useUserInfo = () => {
   const store = useStore<IStore>();
 
@@ -50,7 +74,7 @@ const useUserInfo = () => {
   return { username, isLogin };
 };
 
-const useHeaderBtn = () => {
+const useHeaderClick = () => {
   const router = useRouter();
 
   const handleTitleClick = () => {
@@ -81,30 +105,6 @@ const useDropdown = () => {
 
   return { dropdownRef, switchDropdown };
 };
-
-export default defineComponent({
-  name: "Header",
-  components: { Dropdown },
-  setup() {
-    const { username, isLogin } = useUserInfo();
-    const {
-      handleTitleClick,
-      handleRegisterClick,
-      handleLoginClick,
-    } = useHeaderBtn();
-    const { dropdownRef, switchDropdown } = useDropdown();
-
-    return {
-      handleTitleClick,
-      handleLoginClick,
-      handleRegisterClick,
-      isLogin,
-      username,
-      dropdownRef,
-      switchDropdown,
-    };
-  },
-});
 </script>
 
 <style lang="scss" scoped>

@@ -7,7 +7,6 @@ export interface IStore {
     content: string;
   };
   token: string;
-  columns: IColumn[];
   user: IUser;
   columnInfo: IColumnInfo;
 }
@@ -27,15 +26,13 @@ export interface IUser {
   columnId: string;
 }
 
-export interface IImage {
-  _id: string;
-  url: string;
-}
-
-export interface IColumn {
-  _id: string;
+export interface IPost {
+  postId: string;
+  columnId: string;
   title: string;
-  description: string;
-  author: string;
-  avatar?: IImage;
+  desc: string;
+  content: string;
+  picture: string;
+  createAt: string;
+  updateAt: string;
 }

@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted } from "vue";
+import { defineComponent, onMounted, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { IStore } from "@/interface";
@@ -39,7 +39,7 @@ export default defineComponent({
       router.push(`/columns/${id}`);
     };
 
-    const list = computed(() => store.state.columns);
+    const list = reactive([]);
 
     return { list, enterColumn };
   },

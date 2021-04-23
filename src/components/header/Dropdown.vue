@@ -18,6 +18,26 @@ import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 import { IStore } from "@/interface";
 
+export default defineComponent({
+  name: "Dropdown",
+  setup() {
+    const { dropdownRef, showDropdown, switchDropdown } = useDropdown();
+    const { logout, writePost, editProfile, myColumn } = useBtnClick(
+      switchDropdown
+    );
+
+    return {
+      dropdownRef,
+      showDropdown,
+      switchDropdown,
+      logout,
+      writePost,
+      editProfile,
+      myColumn,
+    };
+  },
+});
+
 const useDropdown = () => {
   const dropdownRef = ref<null | HTMLElement>(null);
   const showDropdown = ref<boolean>(false);
@@ -74,26 +94,6 @@ const useBtnClick = (switchDropdown: () => void) => {
 
   return { logout, writePost, editProfile, myColumn };
 };
-
-export default defineComponent({
-  name: "Dropdown",
-  setup() {
-    const { dropdownRef, showDropdown, switchDropdown } = useDropdown();
-    const { logout, writePost, editProfile, myColumn } = useBtnClick(
-      switchDropdown
-    );
-
-    return {
-      dropdownRef,
-      showDropdown,
-      switchDropdown,
-      logout,
-      writePost,
-      editProfile,
-      myColumn,
-    };
-  },
-});
 </script>
 
 <style lang="scss" scoped>

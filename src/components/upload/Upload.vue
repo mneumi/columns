@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts">
-import { PropType, ref, defineComponent } from "vue";
+import { PropType, ref, defineComponent, watch } from "vue";
 import axios from "axios";
 
 type UploadStatus = "ready" | "uploading" | "success" | "error";
@@ -40,6 +40,10 @@ export default defineComponent({
     beforeUpload: {
       type: Function as PropType<BeforeUploadFunction>,
     },
+    uploaded: {
+      type: String,
+      required: false,
+    },
   },
   emits: ["uploaded-success", "uploaded-error"],
   setup(props, context) {
@@ -51,7 +55,15 @@ export default defineComponent({
       }
     };
 
-    const fileUploadStatus = ref<UploadStatus>("ready");
+    let initState: UploadStatus = "ready";
+    
+    watch(() => props.uploaded, (newVal) => {
+      if (newVal) {
+        fileUploadStatus.value = "success";
+      }
+    })
+
+    const fileUploadStatus = ref<UploadStatus>(initState);
 
     const handleFileChange = (e: Event) => {
       const target = e.target as HTMLInputElement;

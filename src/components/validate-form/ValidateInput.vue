@@ -20,8 +20,8 @@
     <v-md-editor
       v-else-if="inputType === 'markdown'"
       v-model="inputReactive.val"
-      height="400px"
       @change="updateMarkdownInput"
+      height="400px"
     ></v-md-editor>
     <div class="error-message">
       <span v-show="inputReactive.hasError">
@@ -32,7 +32,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, PropType, reactive } from "vue";
+import { computed, defineComponent, onMounted, PropType, reactive } from "vue";
 import { emitter } from "./ValidateForm.vue";
 
 interface RuleProp {
@@ -68,7 +68,10 @@ export default defineComponent({
   },
   setup(props, { attrs, emit }) {
     const inputReactive = reactive({
-      val: props.modelValue || "",
+      val: computed({
+        get: () => props.modelValue || "",
+        set: (newValue) => newValue,
+      }),
       hasError: true,
       errorMessage: "",
     });
@@ -79,9 +82,9 @@ export default defineComponent({
       emit("update:modelValue", newInputValue);
     };
 
-    const updateMarkdownInput = (text: string, html: string) => {
+    const updateMarkdownInput = (text: string) => {
       inputReactive.val = text;
-      emit("update:modelValue", html);
+      emit("update:modelValue", text);
     };
 
     const emailRegexp = /^([a-zA-Z]|[0-9])(\w|\\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/i;

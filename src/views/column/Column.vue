@@ -14,9 +14,11 @@
         {{ item.title }}
       </div>
       <div class="main">
-        <img :src="item.picture" />
-        <div class="content">
-          {{ item.content }}
+        <div class="img-wrapper">
+          <img :src="item.picture" />
+        </div>
+        <div class="desc">
+          {{ item.desc }}
         </div>
       </div>
       <div class="date">{{ parseTimestampToDate(item.updateAt) }}</div>
@@ -30,6 +32,24 @@ import { defineComponent, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { parseTimestampToDate } from "@/utils";
 import request from "@/request";
+
+export default defineComponent({
+  name: "Column",
+  setup() {
+    const { picture, title, desc } = useColumnInfo();
+    const { list } = usePostList();
+    const { enterPost } = useEnterPost();
+
+    return {
+      picture,
+      title,
+      desc,
+      list,
+      enterPost,
+      parseTimestampToDate,
+    };
+  },
+});
 
 const useColumnInfo = () => {
   const route = useRoute();
@@ -72,24 +92,6 @@ const useEnterPost = () => {
 
   return { enterPost };
 };
-
-export default defineComponent({
-  name: "Column",
-  setup() {
-    const { picture, title, desc } = useColumnInfo();
-    const { list } = usePostList();
-    const { enterPost } = useEnterPost();
-
-    return {
-      picture,
-      title,
-      desc,
-      list,
-      enterPost,
-      parseTimestampToDate,
-    };
-  },
-});
 </script>
 
 <style lang="scss" scoped>
@@ -136,7 +138,7 @@ export default defineComponent({
     border-radius: 0.05rem;
     border: 0.01rem solid $light-black-color;
     box-sizing: border-box;
-    padding: 0.2rem;
+    padding: 0.15rem;
     display: flex;
     flex-direction: column;
     .title {
@@ -146,15 +148,24 @@ export default defineComponent({
       }
     }
     .main {
-      flex: 1;
       display: flex;
       align-items: center;
-      img {
+      height: 1.8rem;
+      margin: 0.13rem 0;
+      .img-wrapper {
         width: 2rem;
-        border-radius: 0.05rem;
-        margin-right: 0.3rem;
+        height: 1.8rem;
+        margin-right: 0.2rem;
+        img {
+          width: 2rem;
+          height: 1.8rem;
+          object-fit: cover;
+        }
       }
-      .content {
+      .desc {
+        height: 1.8rem;
+        padding: 0.12rem;
+        box-sizing: border-box;
         font-size: 0.18rem;
         color: $light-grey-color;
         line-height: 0.3rem;

@@ -12,15 +12,21 @@ import { IStore } from "@/interface";
 export default defineComponent({
   name: "Loading",
   setup() {
-    const store = useStore<IStore>();
-
-    const isLoading = computed(() => {
-      return store.state.loading > 0;
-    });
+    const { isLoading } = useIsLoading();
 
     return { isLoading };
   },
 });
+
+const useIsLoading = () => {
+  const store = useStore<IStore>();
+
+  const isLoading = computed(() => {
+    return store.state.loading > 0;
+  });
+
+  return { isLoading };
+};
 </script>
 
 <style lang="scss" scoped>

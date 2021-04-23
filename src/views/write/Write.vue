@@ -4,6 +4,7 @@
     <Upload
       action="/upload"
       :beforeUpload="uploadCheck"
+      :uploaded="pictureVal"
       @uploaded-error="(err) => handleUploadedError(err)"
       @uploaded-success="(data) => handleUploadedSuccess(data)"
     >
@@ -35,6 +36,12 @@
           :rules="titleRules"
         />
         <ValidateInput
+          title="文章简介"
+          placeholder="请输入文章简介"
+          v-model="descVal"
+          :rules="descRules"
+        />
+        <ValidateInput
           rows="10"
           title="文章详情"
           placeholder="请输入文章详情（使用markdown）"
@@ -49,8 +56,9 @@
 
 <script lang="ts">
 import { defineComponent, ref, Ref } from "vue";
+import { useRoute } from "vue-router";
 import { useStore } from "vuex";
-import { IStore } from "@/interface";
+import { IPost, IStore } from "@/interface";
 import { beforeUploadCheck } from "@/utils";
 import ValidateForm from "@/components/validate-form/ValidateForm.vue";
 import ValidateInput, {
@@ -58,7 +66,8 @@ import ValidateInput, {
 } from "@/components/validate-form/ValidateInput.vue";
 import Upload from "@/components/upload/Upload.vue";
 import { createMessage } from "@/components/message/Message.vue";
-import { useRouter } from "node_modules/vue-router/dist/vue-router";
+import { useRouter } from "vue-router";
+import request from "@/request";
 
 const useTitleInput = () => {
   const titleVal = ref<string>("");
@@ -75,6 +84,23 @@ const useTitleInput = () => {
   ];
 
   return { titleVal, titleRules };
+};
+
+const useDescInput = () => {
+  const descVal = ref<string>("");
+  const descRules: RulesProp = [
+    {
+      type: "required",
+      message: "文章简介不能为空",
+    },
+    {
+      type: "custom",
+      message: "文章简介不能超过100个字",
+      validator: () => descVal.value.length <= 100,
+    },
+  ];
+
+  return { descVal, descRules };
 };
 
 const useContentInput = () => {
@@ -97,7 +123,6 @@ const usePicture = () => {
 
 const useUpload = (pictureVal: Ref<string>) => {
   const handleUploadedSuccess = (data: { data: { url: string } }) => {
-    console.log(data);
     pictureVal.value = data.data.url;
   };
 
@@ -133,7 +158,8 @@ const useUpload = (pictureVal: Ref<string>) => {
 const useFormSubmit = (
   titleVal: Ref<string>,
   contentVal: Ref<string>,
-  pictureVal: Ref<string>
+  pictureVal: Ref<string>,
+  descVal: Ref<string>
 ) => {
   const router = useRouter();
   const store = useStore<IStore>();
@@ -145,12 +171,11 @@ const useFormSubmit = (
           title: titleVal.value,
           content: contentVal.value,
           picture: pictureVal.value,
+          desc: descVal.value,
         };
         store.dispatch("writePost", payload);
         createMessage("创建文章成功，2秒后跳转到文章首页", "success", () => {
-          setTimeout(() => {
-            router.push("/");
-          });
+          router.push("/");
         });
       } catch (err) {
         console.log(err);
@@ -166,6 +191,7 @@ export default defineComponent({
   components: { ValidateForm, ValidateInput, Upload },
   setup() {
     const { titleVal, titleRules } = useTitleInput();
+    const { descVal, descRules } = useDescInput();
     const { contentVal, contentRules } = useContentInput();
     const { pictureVal } = usePicture();
     const {
@@ -173,12 +199,28 @@ export default defineComponent({
       handleUploadedError,
       uploadCheck,
     } = useUpload(pictureVal);
-    const { formSubmit } = useFormSubmit(titleVal, contentVal, pictureVal);
+    const { formSubmit } = useFormSubmit(titleVal, contentVal, pictureVal, descVal);
+
+    const route = useRoute();
+
+    const postId = route.query.postid;
+
+    if (postId) {
+      request.get(`/posts/${postId}`).then(res => {
+        const post = res.data.data.post as IPost;
+        titleVal.value = post.title;
+        contentVal.value = post.content;
+        pictureVal.value = post.picture;
+        descVal.value = post.desc;
+      })
+    }
 
     return {
       formSubmit,
       titleVal,
       titleRules,
+      descVal,
+      descRules,
       contentVal,
       contentRules,
       handleUploadedSuccess,
