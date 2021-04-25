@@ -31,14 +31,17 @@
 import { defineComponent, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { parseTimestampToDate } from "@/utils";
-import request from "@/request";
+import { request } from "@/request";
+import { createMessage } from "@/components/message/Message.vue";
+import { useStore } from "vuex";
+import { IStore } from "@/interface";
 
 export default defineComponent({
   name: "Column",
   setup() {
-    const { picture, title, desc } = useColumnInfo();
+    const { picture, title, desc, columnId } = useColumnInfo();
     const { list } = usePostList();
-    const { enterPost } = useEnterPost();
+    const { enterPost } = useEnterPost(columnId);
 
     return {
       picture,
@@ -53,41 +56,52 @@ export default defineComponent({
 
 const useColumnInfo = () => {
   const route = useRoute();
-  const id = route.params.id as string;
+  const store = useStore<IStore>();
 
-  const picture = ref<string>("");
-  const title = ref<string>("");
-  const desc = ref<string>("");
+  const columnId = route.params.columnId as string;
 
-  request.get(`/columns/${id}`).then((result) => {
-    const column = result.data.data.column;
+  const picture = ref<string>(store.state.columnInfo.picture);
+  const title = ref<string>(store.state.columnInfo.title);
+  const desc = ref<string>(store.state.columnInfo.desc);
 
-    picture.value = column.picture;
-    title.value = column.title;
-    desc.value = column.desc;
-  });
+  // request
+  //   .get(`/columns/${columnId}`)
+  //   .then((result) => {
+  //     const column = result.data.column;
 
-  return { picture, title, desc };
+  //     picture.value = column.picture;
+  //     title.value = column.title;
+  //     desc.value = column.desc;
+  //   })
+  //   .catch((err) => {
+  //     createMessage(err.message, "error");
+  //   });
+
+  return { picture, title, desc, columnId };
 };
 
 const usePostList = () => {
   const route = useRoute();
-  const id = route.params.id as string;
+  const columnId = route.params.columnId as string;
 
   const list = ref([]);
 
   request
-    .get(`/columns/${id}/posts?currentPage=1&pageSize=5`)
-    .then((result) => (list.value = result.data.data.posts));
+    .get(`/columns/${columnId}/posts?currentPage=1&pageSize=5`)
+    .then((result) => (list.value = result.data.posts))
+    .catch((err) => createMessage(err.message, "error"));
 
   return { list };
 };
 
-const useEnterPost = () => {
+const useEnterPost = (columnId: string) => {
   const router = useRouter();
 
-  const enterPost = (id: string) => {
-    router.push(`/posts/${id}`);
+  const enterPost = (postId: string) => {
+    router.push({
+      path: `/posts/${postId}`,
+      params: { columnId },
+    });
   };
 
   return { enterPost };

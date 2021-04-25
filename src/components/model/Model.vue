@@ -14,6 +14,8 @@
 <script lang="ts">
 import { defineComponent, ref, createApp, PropType } from "vue";
 
+type callbackType = () => void;
+
 const Model = defineComponent({
   name: "Model",
   emits: ["confirm", "cancel"],
@@ -34,8 +36,6 @@ const Model = defineComponent({
     return { showModel, closeModel, confirmModel };
   },
 });
-
-type callbackType = () => void;
 
 const useModel = (
   confirmCb: callbackType,

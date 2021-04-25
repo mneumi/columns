@@ -1,11 +1,5 @@
-export type MessageType = 'success' | 'error' | 'default';
-
 export interface IStore {
   loading: number;
-  message: {
-    type: MessageType;
-    content: string;
-  };
   token: string;
   user: IUser;
   columnInfo: IColumnInfo;
@@ -24,6 +18,7 @@ export interface IUser {
   desc: string;
   avatar: string;
   columnId: string;
+  [key: string]: string;
 }
 
 export interface IPost {
@@ -35,4 +30,5 @@ export interface IPost {
   picture: string;
   createAt: string;
   updateAt: string;
+  [key: string]: string;
 }

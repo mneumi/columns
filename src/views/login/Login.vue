@@ -14,12 +14,12 @@
         />
         <ValidateInput
           type="password"
-          :title="'密码'"
+          title="密码"
           :rules="passwordRules"
           v-model="passwordVal"
           placeholder="请输入密码"
         />
-        <router-link to="/login">
+        <router-link to="/register">
           <div class="link">还没有账号？立即注册!</div>
         </router-link>
       </ValidateForm>
@@ -37,6 +37,24 @@ import ValidateInput, {
   RulesProp,
 } from "../../components/validate-form/ValidateInput.vue";
 import ValidateForm from "../../components/validate-form/ValidateForm.vue";
+
+export default defineComponent({
+  name: "Login",
+  components: { ValidateInput, ValidateForm },
+  setup() {
+    const { emailVal, emailRules } = useEmailInput();
+    const { passwordVal, passwordRules } = usePasswordInput();
+    const { formSubmit } = useFormSubmit(emailVal, passwordVal);
+
+    return {
+      emailVal,
+      emailRules,
+      passwordVal,
+      passwordRules,
+      formSubmit,
+    };
+  },
+});
 
 const useEmailInput = () => {
   const emailVal = ref<string>("");
@@ -67,46 +85,29 @@ const usePasswordInput = () => {
 };
 
 const useFormSubmit = (emailVal: Ref<string>, passwordVal: Ref<string>) => {
-  const store = useStore<IStore>();
   const router = useRouter();
+  const store = useStore<IStore>();
 
-  const formSubmit = async (result: boolean) => {
+  const formSubmit = (result: boolean) => {
     if (result) {
-      try {
-        await store.dispatch("login", {
+      store
+        .dispatch("login", {
           email: emailVal.value,
           password: passwordVal.value,
+        })
+        .then(() => {
+          createMessage("登录成功，2秒后跳转到主页", "success", () =>
+            router.push("/")
+          );
+        })
+        .catch((err) => {
+          createMessage(err.data.message, "error");
         });
-        createMessage("登录成功，2秒后跳转到主页", "success", () =>
-          router.push("/")
-        );
-      } catch (err) {
-        const errContent = err.data?.message || "网络发生错误";
-        store.commit("setMessage", { content: errContent, type: "error" });
-      }
     }
   };
 
   return { formSubmit };
 };
-
-export default defineComponent({
-  name: "Login",
-  components: { ValidateInput, ValidateForm },
-  setup() {
-    const { emailVal, emailRules } = useEmailInput();
-    const { passwordVal, passwordRules } = usePasswordInput();
-    const { formSubmit } = useFormSubmit(emailVal, passwordVal);
-
-    return {
-      emailVal,
-      emailRules,
-      passwordVal,
-      passwordRules,
-      formSubmit,
-    };
-  },
-});
 </script>
 
 <style lang="scss" scoped>

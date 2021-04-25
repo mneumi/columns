@@ -1,33 +1,51 @@
 import { createStore } from 'vuex';
-import { IStore, MessageType } from '@/interface';
-import request from '@/request';
+import { IColumnInfo, IStore, IUser } from '@/interface';
+import { request } from '@/request';
+
+const getInitState = () => {
+  let token = '';
+  let user: IUser = {
+    userId: '',
+    email: '',
+    nickname: '',
+    desc: '',
+    avatar: '',
+    columnId: '',
+  };
+  let columnInfo: IColumnInfo = {
+    title: '',
+    desc: '',
+    picture: '',
+  };
+
+  const storageToken = localStorage.getItem('token');
+  if (storageToken) {
+    token = storageToken;
+  }
+
+  const storageUser = localStorage.getItem('userInfo');
+  if (storageUser) {
+    user = JSON.parse(storageUser);
+  }
+
+  const storageColumnInfo = localStorage.getItem('columnInfo');
+  if (storageColumnInfo) {
+    columnInfo = JSON.parse(storageColumnInfo);
+  }
+
+  return { token, user, columnInfo };
+};
+
+const initState = getInitState();
 
 const store = createStore<IStore>({
   state: {
     loading: 0,
-    message: {
-      type: 'default',
-      content: '',
-    },
-    token: localStorage.getItem('token') || '',
-    user: {
-      userId: '',
-      email: '',
-      nickname: '',
-      desc: '',
-      avatar: '',
-      columnId: '',
-    },
-    columnInfo: {
-      title: '',
-      desc: '',
-      picture: '',
-    },
+    token: initState.token,
+    user: initState.user,
+    columnInfo: initState.columnInfo
   },
   mutations: {
-    fetchColumns(state, payload) {
-      const { columns } = payload;
-    },
     login(state, payload) {
       const { token } = payload;
       state.token = token;
@@ -60,36 +78,22 @@ const store = createStore<IStore>({
       };
 
       state.columnInfo = columnInfo;
+      localStorage.setItem('columnInfo', JSON.stringify(columnInfo));
     },
-    logout(state, payload) {
+    logout(state) {
       localStorage.removeItem('token');
       localStorage.removeItem('userInfo');
+      localStorage.removeItem('columnInfo');
       state.token = '';
     },
-    addLoading(state, payload) {
+    addLoading(state) {
       state.loading++;
     },
-    minusLoading(state, payload) {
+    minusLoading(state) {
       state.loading--;
     },
-    setMessage(state, payload: { type: MessageType; content: string }) {
-      const { content, type } = payload;
-      state.message.type = type;
-      state.message.content = content;
-    },
   },
-  getters: {},
   actions: {
-    async fetchColumns(context, payload) {
-      const result = await request.get('/columns', {
-        params: {
-          currentPage: 1,
-          pageSize: 6,
-        },
-      });
-      const list = result.data.data.list;
-      context.commit('fetchColumns', { columns: list });
-    },
     async login(context, payload) {
       const { email, password } = payload;
 
@@ -98,51 +102,22 @@ const store = createStore<IStore>({
         password,
       });
 
-      const token = result.data.data.token;
+      const token = result.data.token;
 
       context.commit('login', { token });
 
       await context.dispatch('getUserInfo');
+      await context.dispatch('getColumnInfo');
     },
-    async register(context, payload) {
-      const { email, password, nickname } = payload;
-
-      await request.post('/auth/register', {
-        email,
-        password,
-        nickname,
-      });
-    },
-    async getUserInfo(context, payload) {
+    async getUserInfo(context) {
       const result = await request.post('/users');
-      const { data } = result.data;
-      context.commit('getUserInfo', data.user);
+      context.commit('getUserInfo', result.data.user);
     },
-    async updateUserInfo(context, payload) {
-      const result = await request.put(
-        `/users/${context.state.user.userId}`,
-        payload
-      );
-      console.log('store.ts: ', result);
-    },
-    async getColumnInfo(context, payload) {
+    async getColumnInfo(context) {
       const result = await request.get(
         `/columns/${context.state.user.columnId}`
       );
-
-      const columnInfo = result.data.data.column;
-
-      store.commit('getColumnInfo', columnInfo);
-    },
-    async updateColumnInfo(context, payload) {
-      const result = await request.patch(
-        `/columns/${context.state.user.columnId}`,
-        payload
-      );
-      console.log(result);
-    },
-    async writePost(context, payload) {
-      const result = await request.post('/posts', payload);
+      store.commit('getColumnInfo', result.data.column);
     },
   },
 });

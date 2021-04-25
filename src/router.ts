@@ -29,12 +29,12 @@ const router = createRouter({
     },
     {
       name: 'Column',
-      path: '/columns/:id',
+      path: '/columns/:columnId',
       component: () => import('./views/column/Column.vue'),
     },
     {
       name: 'Post',
-      path: '/posts/:id',
+      path: '/posts/:postId',
       component: () => import('./views/post/Post.vue'),
     },
     {

@@ -17,12 +17,30 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, onUnmounted } from "vue";
+import { defineComponent, onMounted, onUnmounted, SetupContext } from "vue";
 import mitt from "mitt";
 
 type ValidateFunc = () => boolean;
-
 export const emitter = mitt();
+
+export default defineComponent({
+  name: "ValidateForm",
+  emits: ["form-submit"],
+  props: {
+    formName: { type: String, required: false },
+    btnName: { type: String, required: false },
+    btnWidth: { type: String, required: false, default: "100%" },
+  },
+  setup(props, context) {
+    const { funcArray } = useEmitter();
+
+    const { submitForm } = useSubmitForm(funcArray, context);
+
+    useKeyboardInput(submitForm);
+
+    return { submitForm };
+  },
+});
 
 const useKeyboardInput = (submitForm: () => void) => {
   const keyEnterSubmit = (event: KeyboardEvent) => {
@@ -65,37 +83,17 @@ const useEmitter = () => {
   return { funcArray };
 };
 
-export default defineComponent({
-  name: "ValidateForm",
-  emits: ["form-submit"],
-  props: {
-    formName: {
-      type: String,
-      required: false,
-    },
-    btnName: {
-      type: String,
-      required: false,
-    },
-    btnWidth: {
-      type: String,
-      required: false,
-      default: "100%",
-    },
-  },
-  setup(props, { emit }) {
-    const { funcArray } = useEmitter();
+const useSubmitForm = (
+  funcArray: ValidateFunc[],
+  context: SetupContext<"form-submit"[]>
+) => {
+  const submitForm = () => {
+    const result = funcArray.map((func) => func()).every((result) => result);
+    context.emit("form-submit", result);
+  };
 
-    const submitForm = () => {
-      const result = funcArray.map((func) => func()).every((result) => result);
-      emit("form-submit", result);
-    };
-
-    useKeyboardInput(submitForm);
-
-    return { submitForm };
-  },
-});
+  return { submitForm };
+};
 </script>
 
 <style lang="scss" scoped>

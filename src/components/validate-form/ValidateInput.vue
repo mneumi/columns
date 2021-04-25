@@ -32,7 +32,13 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, onMounted, PropType, reactive } from "vue";
+import {
+  computed,
+  defineComponent,
+  PropType,
+  reactive,
+  SetupContext,
+} from "vue";
 import { emitter } from "./ValidateForm.vue";
 
 interface RuleProp {
@@ -40,24 +46,17 @@ interface RuleProp {
   message: string;
   validator?: () => boolean;
 }
-
 export type InputType = "input" | "textarea" | "markdown";
-
 export type RulesProp = RuleProp[];
 
 export default defineComponent({
   name: "ValidateInput",
+  emits: ["update:modelValue"],
   props: {
+    title: { type: String, required: false },
+    modelValue: { type: String, required: true },
     rules: {
       type: Array as PropType<RulesProp>,
-      required: true,
-    },
-    title: {
-      type: String,
-      required: false,
-    },
-    modelValue: {
-      type: String,
       required: true,
     },
     inputType: {
@@ -66,66 +65,14 @@ export default defineComponent({
       default: "input",
     },
   },
-  setup(props, { attrs, emit }) {
-    const inputReactive = reactive({
-      val: computed({
-        get: () => props.modelValue || "",
-        set: (newValue) => newValue,
-      }),
-      hasError: true,
-      errorMessage: "",
-    });
-
-    const updateInput = (e: KeyboardEvent) => {
-      const newInputValue = (e.target as HTMLInputElement).value;
-      inputReactive.val = newInputValue;
-      emit("update:modelValue", newInputValue);
-    };
-
-    const updateMarkdownInput = (text: string) => {
-      inputReactive.val = text;
-      emit("update:modelValue", text);
-    };
-
-    const emailRegexp = /^([a-zA-Z]|[0-9])(\w|\\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/i;
-
-    const validateInput = () => {
-      if (props.rules) {
-        const allPassed = props.rules.every((rule) => {
-          let passed = true;
-          inputReactive.errorMessage = rule.message;
-
-          switch (rule.type) {
-            case "required":
-              passed = inputReactive.val.trim() !== "";
-              break;
-            case "email":
-              passed = emailRegexp.test(inputReactive.val.trim());
-              break;
-            case "custom":
-              if (rule.validator) {
-                passed = rule.validator();
-              } else {
-                passed = false;
-                inputReactive.errorMessage = "请输入自定义校验函数";
-              }
-              break;
-          }
-
-          return passed;
-        });
-
-        inputReactive.hasError = !allPassed;
-
-        return allPassed;
-      }
-
-      return true;
-    };
-
-    onMounted(() => {
-      emitter.emit("form-item-created", validateInput);
-    });
+  setup(props, context) {
+    const {
+      inputReactive,
+      updateInput,
+      updateMarkdownInput,
+    } = useInputReactive(props, context);
+    const { validateInput } = useValidateInput(inputReactive, props.rules);
+    const { attrs } = context;
 
     return {
       inputReactive,
@@ -136,6 +83,90 @@ export default defineComponent({
     };
   },
 });
+
+const useInputReactive = (
+  props: Readonly<
+    {
+      modelValue: string;
+      rules: RulesProp;
+      inputType: InputType;
+    } & {
+      title?: string | undefined;
+    }
+  >,
+  context: SetupContext<"update:modelValue"[]>
+) => {
+  const inputReactive = reactive({
+    val: computed({
+      get: () => props.modelValue || "",
+      set: (newValue) => newValue,
+    }),
+    hasError: true,
+    errorMessage: "",
+  });
+
+  const updateInput = (e: KeyboardEvent) => {
+    const newInputValue = (e.target as HTMLInputElement).value;
+    inputReactive.val = newInputValue;
+    context.emit("update:modelValue", newInputValue);
+  };
+
+  const updateMarkdownInput = (text: string) => {
+    inputReactive.val = text;
+    context.emit("update:modelValue", text);
+  };
+
+  return { inputReactive, updateInput, updateMarkdownInput };
+};
+
+const useValidateInput = (
+  inputReactive: {
+    val: string;
+    hasError: boolean;
+    errorMessage: string;
+  },
+  rules?: RulesProp
+) => {
+  const emailRegexp = /^([a-zA-Z]|[0-9])(\w|\\-)+@[a-zA-Z0-9]+\.([a-zA-Z]{2,4})$/i;
+
+  const validateInput = () => {
+    if (rules) {
+      const allPassed = rules.every((rule) => {
+        let passed = true;
+        inputReactive.errorMessage = rule.message;
+
+        switch (rule.type) {
+          case "required":
+            passed = inputReactive.val.trim() !== "";
+            break;
+          case "email":
+            passed = emailRegexp.test(inputReactive.val.trim());
+            break;
+          case "custom":
+            if (rule.validator) {
+              passed = rule.validator();
+            } else {
+              passed = false;
+              inputReactive.errorMessage = "请输入自定义校验函数";
+            }
+            break;
+        }
+
+        return passed;
+      });
+
+      inputReactive.hasError = !allPassed;
+
+      return allPassed;
+    }
+
+    return true;
+  };
+
+  emitter.emit("form-item-created", validateInput);
+
+  return { validateInput };
+};
 </script>
 
 <style lang="scss" scoped>

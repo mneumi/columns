@@ -1,36 +1,41 @@
 <template>
   <div class="post-wrapper">
     <div class="header">
-      <a href="/">首页</a> / <a :href="`/columns/${columnId}`">专栏首页</a> /
-      <span>{{ title }}</span>
+      <a href="/">首页</a> /
+      <a :href="`/columns/${postInfo.columnId}`">专栏首页</a> /
+      <span>{{ postInfo.title }}</span>
     </div>
     <div class="header-img-wrapper">
-      <img :src="picture" />
+      <img :src="postInfo.picture" />
     </div>
-    <div class="title">{{ title }}</div>
+    <div class="title">{{ postInfo.title }}</div>
     <div class="author">
-      <img class="avatar" :src="avatar" />
+      <img class="avatar" :src="userInfo.avatar" />
       <div class="info">
-        <div class="author-name">{{ nickname }}</div>
-        <div class="author-desc">{{ userDesc }}</div>
+        <div class="author-name">{{ userInfo.nickname }}</div>
+        <div class="author-desc">{{ userInfo.userDesc }}</div>
       </div>
-      <div class="date">发表于：{{ parseTimestampToDate(updateAt) }}</div>
+      <div class="date">
+        发表于：{{ parseTimestampToDate(postInfo.updateAt) }}
+      </div>
     </div>
     <div class="content">
-      <v-md-editor v-model="content" mode="preview"></v-md-editor>
+      <v-md-editor v-model="postInfo.content" mode="preview"></v-md-editor>
     </div>
     <div class="controller" v-if="isOwner">
-      <div class="edit btn" @click="() => editPost(postId)">编辑文章</div>
+      <div class="edit btn" @click="() => editPost(postInfo.postId)">
+        编辑文章
+      </div>
       <div class="delete btn" @click="deletePost">删除文章</div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
+import { computed, defineComponent, reactive, Ref, toRef } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useStore } from "vuex";
-import { computed, defineComponent, reactive, toRefs } from "vue";
-import request from "@/request";
+import { request } from "@/request";
 import { IPost, IStore, IUser } from "@/interface";
 import { parseTimestampToDate } from "@/utils";
 import { createModel } from "@/components/model/Model.vue";
@@ -39,122 +44,132 @@ import { createMessage } from "@/components/message/Message.vue";
 export default defineComponent({
   name: "Post",
   setup() {
-    const route = useRoute();
-    const router = useRouter();
-    const store = useStore<IStore>();
-    const currentPostId = route.params.id;
-
-    const postInfo = reactive<IPost>({
-      postId: "",
-      columnId: "",
-      title: "",
-      desc: "",
-      content: "",
-      picture: "",
-      createAt: "",
-      updateAt: "",
-    });
-
-    const userInfo = reactive<Partial<IUser>>({
-      avatar: "",
-      nickname: "",
-      desc: "",
-    });
-
-    request
-      .get(`/posts/${currentPostId}`)
-      .then((resp) => {
-        const currentPost = resp.data.data.post as IPost;
-
-        postInfo.postId = currentPost.postId;
-        postInfo.columnId = currentPost.columnId;
-        postInfo.title = currentPost.title;
-        postInfo.desc = currentPost.desc;
-        postInfo.content = currentPost.content;
-        postInfo.picture = currentPost.picture;
-        postInfo.createAt = currentPost.createAt;
-        postInfo.updateAt = currentPost.updateAt;
-
-        const currentUser = resp.data.data.user as IUser;
-
-        userInfo.avatar = currentUser.avatar;
-        userInfo.nickname = currentUser.nickname;
-        userInfo.desc = currentUser.desc;
-      })
-      .catch((err) => {
-        const errContent = err?.data?.message || "网络发生错误";
-        store.commit("setMessage", { content: errContent, type: "error" });
-      });
-
-    const isOwner = computed(() => {
-      return store.state.user.columnId === postInfo.columnId;
-    });
-
-    const {
-      postId,
-      columnId,
-      title,
-      desc,
-      content,
-      picture,
-      createAt,
-      updateAt,
-    } = toRefs(postInfo);
-
-    const { avatar, nickname, desc: userDesc } = toRefs(userInfo);
-
-    const deletePost = () => {
-      createModel(
-        "确认删除文章",
-        "确定要删除文章吗？一旦删除将无法恢复！",
-        "确认删除",
-        "取消",
-        () => {
-          request
-            .delete(`/posts/${postId.value}`)
-            .then(() => {
-              createMessage(
-                "删除文章成功，2秒后跳转到专栏首页",
-                "success",
-                () => {
-                  router.push(`/columns/${columnId.value}`);
-                }
-              );
-            })
-            .catch((err) => {
-              const errContent = err?.data?.message || "网络发生错误";
-              store.commit("setMessage", {
-                content: errContent,
-                type: "error",
-              });
-            });
-        }
-      );
-    };
-
-    const editPost = (postId: string) => {
-      router.push(`/write?postid=${postId}`);
-    }
+    const { postInfo, changePostInfo } = usePostInfo();
+    const { userInfo, changeUserInfo } = useUserInfo();
+    const { isOwner } = useIsOwner(postInfo);
+    const { editPost } = useEditPost();
+    const { deletePost } = useDeletePost(toRef(postInfo, "columnId"), toRef(postInfo, "postId"));
+    useRequestData(postInfo.postId, changePostInfo, changeUserInfo);
 
     return {
-      postId,
-      columnId,
-      title,
-      desc,
-      content,
-      picture,
-      createAt,
-      updateAt,
-      parseTimestampToDate,
+      postInfo,
+      userInfo,
       isOwner,
-      avatar,
-      nickname,
-      userDesc,
+      editPost,
       deletePost,
-      editPost
+      parseTimestampToDate,
     };
   },
 });
+
+const usePostInfo = () => {
+  const route = useRoute();
+
+  const postInfo = reactive<IPost>({
+    postId: route.params.postId as string,
+    columnId: route.params.columnId as string,
+    title: "",
+    desc: "",
+    content: "",
+    picture: "",
+    createAt: "",
+    updateAt: "",
+  });
+
+  const changePostInfo = (currentPost: IPost) => {
+    for (const key in currentPost) {
+      postInfo[key] = currentPost[key];
+    }
+  };
+
+  return { postInfo, changePostInfo };
+};
+
+const useUserInfo = () => {
+  const userInfo = reactive<Partial<IUser>>({
+    avatar: "",
+    nickname: "",
+    desc: "",
+  });
+
+  const changeUserInfo = (currentUser: IUser) => {
+    for (const key in currentUser) {
+      userInfo[key] = currentUser[key];
+    }
+  };
+
+  return { userInfo, changeUserInfo };
+};
+
+const useIsOwner = (postInfo: IPost) => {
+  const store = useStore<IStore>();
+
+  const isOwner = computed(() => {
+    return store.state.user.columnId === postInfo.columnId;
+  });
+
+  return { isOwner };
+};
+
+const useEditPost = () => {
+  const router = useRouter();
+
+  const editPost = (postId: string) => {
+    router.push(`/write?postId=${postId}`);
+  };
+
+  return { editPost };
+};
+
+const useDeletePost = (columnId: Ref<string>, postId: Ref<string>) => {
+  const router = useRouter();
+
+  const deletePost = () => {
+    createModel(
+      "确认删除文章",
+      "确定要删除文章吗？一旦删除将无法恢复！",
+      "确认删除",
+      "取消",
+      () => {
+        request
+          .delete(`/posts/${postId.value}`)
+          .then(() => {
+            createMessage(
+              "删除文章成功，2秒后跳转到专栏首页",
+              "success",
+              () => {
+                router.push(`/columns/${columnId.value}`);
+              }
+            );
+          })
+          .catch((err) => {
+            createMessage(err.data.message, "error");
+          });
+      }
+    );
+  };
+
+  return { deletePost };
+};
+
+const useRequestData = (
+  currentPostId: string,
+  changePostInfo: (currentPost: IPost) => void,
+  changeUserInfo: (currentUser: IUser) => void
+) => {
+  request
+    .get(`/posts/${currentPostId}`)
+    .then((result) => {
+      const currentPost = result.data.post as IPost;
+      changePostInfo(currentPost);
+
+      const currentUser = result.data.user as IUser;
+      changeUserInfo(currentUser);
+    })
+    .catch((err) => {
+      createMessage(err.data.message, "error");
+    });
+};
 </script>
 
 <style lang="scss" scoped>

@@ -14,7 +14,8 @@
 
 <script lang="ts">
 import { defineComponent, PropType, ref, createApp } from "vue";
-import { MessageType } from "@/interface";
+
+type MessageType = "success" | "error" | "default";
 
 const Message = defineComponent({
   name: "Message",
@@ -36,11 +37,15 @@ const Message = defineComponent({
 });
 
 export const createMessage = (
-  msg: string,
+  msg: string | undefined,
   msgType: MessageType,
   callback?: () => void,
   timeout?: number
 ): void => {
+  if (!msg) {
+    msg = "网络请求发生错误";
+  }
+
   const msgInstance = createApp(Message, {
     msg,
     msgType,

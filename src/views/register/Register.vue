@@ -43,11 +43,36 @@
 <script lang="ts">
 import { defineComponent, ref, Ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { request } from "@/request";
 import ValidateInput, {
   RulesProp,
 } from "@/components/validate-form/ValidateInput.vue";
 import ValidateForm from "@/components/validate-form/ValidateForm.vue";
+import { createMessage } from "@/components/message/Message.vue";
+
+export default defineComponent({
+  name: "Register",
+  components: { ValidateInput, ValidateForm },
+  setup() {
+    const { emailVal, emailRules } = useEmailInput();
+    const { nicknameVal, nicknameRules } = useNicknameInput();
+    const { passwordVal, passwordRules } = usePasswordInput();
+    const { confirmVal, confirmRules } = useConfirmInput(passwordVal);
+    const { formSubmit } = useFormSubmit(emailVal, passwordVal, nicknameVal);
+
+    return {
+      emailVal,
+      emailRules,
+      nicknameVal,
+      nicknameRules,
+      passwordVal,
+      passwordRules,
+      confirmVal,
+      confirmRules,
+      formSubmit,
+    };
+  },
+});
 
 const useEmailInput = () => {
   const emailVal = ref<string>("");
@@ -122,56 +147,28 @@ const useFormSubmit = (
   nicknameVal: Ref<string>
 ) => {
   const router = useRouter();
-  const store = useStore();
 
   const formSubmit = async (result: boolean) => {
     if (result) {
-      try {
-        await store.dispatch("register", {
+      request
+        .post("/auth/register", {
           email: emailVal.value,
           password: passwordVal.value,
           nickname: nicknameVal.value,
+        })
+        .then(() => {
+          createMessage("注册成功，2秒后自动跳转到登录页面", "success", () => {
+            router.push("/login");
+          });
+        })
+        .catch((err) => {
+          createMessage(err.data.message, "error");
         });
-        store.commit("setMessage", {
-          content: "注册成功，2秒后自动跳转到登录页面",
-          type: "success",
-        });
-        setTimeout(() => {
-          router.push("/login");
-        }, 2000);
-      } catch (err) {
-        const errContent = err.data?.message || "网络发生错误";
-        store.commit("setMessage", { content: errContent, type: "error" });
-      }
     }
   };
 
   return { formSubmit };
 };
-
-export default defineComponent({
-  name: "Register",
-  components: { ValidateInput, ValidateForm },
-  setup() {
-    const { emailVal, emailRules } = useEmailInput();
-    const { nicknameVal, nicknameRules } = useNicknameInput();
-    const { passwordVal, passwordRules } = usePasswordInput();
-    const { confirmVal, confirmRules } = useConfirmInput(passwordVal);
-    const { formSubmit } = useFormSubmit(emailVal, passwordVal, nicknameVal);
-
-    return {
-      emailVal,
-      emailRules,
-      nicknameVal,
-      nicknameRules,
-      passwordVal,
-      passwordRules,
-      confirmVal,
-      confirmRules,
-      formSubmit,
-    };
-  },
-});
 </script>
 
 <style lang="scss" scoped>

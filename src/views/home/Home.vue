@@ -20,8 +20,6 @@
 <script lang="ts">
 import { defineComponent, onMounted, reactive } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
-import { IStore } from "@/interface";
 import Slogn from "./Slogn.vue";
 
 export default defineComponent({
@@ -29,10 +27,9 @@ export default defineComponent({
   components: { Slogn },
   setup() {
     const router = useRouter();
-    const store = useStore<IStore>();
 
     onMounted(() => {
-      store.dispatch("fetchColumns");
+      // 获取专栏信息
     });
 
     const enterColumn = (id: string) => {

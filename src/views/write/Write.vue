@@ -56,18 +56,78 @@
 
 <script lang="ts">
 import { defineComponent, ref, Ref } from "vue";
-import { useRoute } from "vue-router";
-import { useStore } from "vuex";
-import { IPost, IStore } from "@/interface";
+import { useRoute, useRouter } from "vue-router";
+import { IPost } from "@/interface";
 import { beforeUploadCheck } from "@/utils";
+import { request } from "@/request";
+import { createMessage } from "@/components/message/Message.vue";
+import Upload from "@/components/upload/Upload.vue";
 import ValidateForm from "@/components/validate-form/ValidateForm.vue";
 import ValidateInput, {
   RulesProp,
 } from "@/components/validate-form/ValidateInput.vue";
-import Upload from "@/components/upload/Upload.vue";
-import { createMessage } from "@/components/message/Message.vue";
-import { useRouter } from "vue-router";
-import request from "@/request";
+
+export default defineComponent({
+  name: "Write",
+  components: { ValidateForm, ValidateInput, Upload },
+  setup() {
+    const { titleVal, titleRules } = useTitleInput();
+    const { descVal, descRules } = useDescInput();
+    const { contentVal, contentRules } = useContentInput();
+    const { pictureVal } = usePicture();
+    const {
+      handleUploadedSuccess,
+      handleUploadedError,
+      uploadCheck,
+    } = useUpload(pictureVal);
+    const { isEdit } = useEditExists(titleVal, contentVal, pictureVal, descVal);
+    const { formSubmit } = useFormSubmit(
+      titleVal,
+      contentVal,
+      pictureVal,
+      descVal,
+      isEdit
+    );
+    
+    return {
+      formSubmit,
+      titleVal,
+      titleRules,
+      descVal,
+      descRules,
+      contentVal,
+      contentRules,
+      handleUploadedSuccess,
+      handleUploadedError,
+      pictureVal,
+      uploadCheck,
+    };
+  },
+});
+
+const useEditExists = (
+  titleVal: Ref<string>,
+  contentVal: Ref<string>,
+  pictureVal: Ref<string>,
+  descVal: Ref<string>
+) => {
+  const route = useRoute();
+  const postId = route.query.postId;
+
+  if (postId) {
+    request.get(`/posts/${postId}`).then((res) => {
+      const post = res.data.post as IPost;
+      titleVal.value = post.title;
+      contentVal.value = post.content;
+      pictureVal.value = post.picture;
+      descVal.value = post.desc;
+    });
+  }
+
+  const isEdit = postId !== undefined;
+
+  return { isEdit };
+};
 
 const useTitleInput = () => {
   const titleVal = ref<string>("");
@@ -122,8 +182,8 @@ const usePicture = () => {
 };
 
 const useUpload = (pictureVal: Ref<string>) => {
-  const handleUploadedSuccess = (data: { data: { url: string } }) => {
-    pictureVal.value = data.data.url;
+  const handleUploadedSuccess = (data: { url: string } ) => {
+    pictureVal.value = data.url;
   };
 
   const handleUploadedError = (err: {
@@ -159,77 +219,35 @@ const useFormSubmit = (
   titleVal: Ref<string>,
   contentVal: Ref<string>,
   pictureVal: Ref<string>,
-  descVal: Ref<string>
+  descVal: Ref<string>,
+  isEdit: boolean
 ) => {
   const router = useRouter();
-  const store = useStore<IStore>();
 
   const formSubmit = (result: boolean) => {
     if (result) {
-      try {
-        const payload = {
-          title: titleVal.value,
-          content: contentVal.value,
-          picture: pictureVal.value,
-          desc: descVal.value,
-        };
-        store.dispatch("writePost", payload);
-        createMessage("创建文章成功，2秒后跳转到文章首页", "success", () => {
-          router.push("/");
+      const payload = {
+        title: titleVal.value,
+        content: contentVal.value,
+        picture: pictureVal.value,
+        desc: descVal.value,
+      };
+      request
+        .post("/posts", payload)
+        .then((result) => {
+          const writeType = isEdit ? "编辑" : "创建";
+          createMessage(`${writeType}文章成功，2秒后跳转到文章页`, "success", () => {
+            router.push(`/posts/${result.data.postId}`);
+          });
+        })
+        .catch((err) => {
+          createMessage(err.data.message, "error");
         });
-      } catch (err) {
-        console.log(err);
-      }
     }
   };
 
   return { formSubmit };
 };
-
-export default defineComponent({
-  name: "Write",
-  components: { ValidateForm, ValidateInput, Upload },
-  setup() {
-    const { titleVal, titleRules } = useTitleInput();
-    const { descVal, descRules } = useDescInput();
-    const { contentVal, contentRules } = useContentInput();
-    const { pictureVal } = usePicture();
-    const {
-      handleUploadedSuccess,
-      handleUploadedError,
-      uploadCheck,
-    } = useUpload(pictureVal);
-    const { formSubmit } = useFormSubmit(titleVal, contentVal, pictureVal, descVal);
-
-    const route = useRoute();
-
-    const postId = route.query.postid;
-
-    if (postId) {
-      request.get(`/posts/${postId}`).then(res => {
-        const post = res.data.data.post as IPost;
-        titleVal.value = post.title;
-        contentVal.value = post.content;
-        pictureVal.value = post.picture;
-        descVal.value = post.desc;
-      })
-    }
-
-    return {
-      formSubmit,
-      titleVal,
-      titleRules,
-      descVal,
-      descRules,
-      contentVal,
-      contentRules,
-      handleUploadedSuccess,
-      handleUploadedError,
-      pictureVal,
-      uploadCheck,
-    };
-  },
-});
 </script>
 
 <style lang="scss" scoped>
