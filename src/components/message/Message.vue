@@ -56,8 +56,20 @@ export const createMessage = (
   if (!msg) {
     msg = "网络请求发生错误";
   }
+  if (!timeout) {
+    timeout = 2000;
+  }
 
   let hasClose = false;
+
+  let msgDOM = document.getElementById("message");
+  if (msgDOM) {
+    document.body.removeChild(msgDOM);
+  }
+
+  msgDOM = document.createElement("div");
+  msgDOM.id = "message";
+  document.body.appendChild(msgDOM);
 
   const msgInstance = createApp(Message, {
     msg,
@@ -65,24 +77,22 @@ export const createMessage = (
     cb: () => {
       if (!hasClose) {
         msgInstance.unmount();
-        document.body.removeChild(msgDOM);
+        if (msgDOM) {
+          document.body.removeChild(msgDOM);
+        }
         hasClose = true;
       }
     },
   });
 
-  if (!timeout) {
-    timeout = 2000;
-  }
-
-  const msgDOM = document.createElement("div");
-  document.body.appendChild(msgDOM);
   msgInstance.mount(msgDOM);
 
   setTimeout(() => {
     if (!hasClose) {
       msgInstance.unmount();
-      document.body.removeChild(msgDOM);
+      if (msgDOM) {
+        document.body.removeChild(msgDOM);
+      }
       hasClose = true;
     }
     if (callback) {

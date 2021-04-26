@@ -30,14 +30,22 @@ const Message = defineComponent({
 });
 
 export const createCenterMessage = (msg: string): void => {
-  const msgDOM = document.createElement("div");
+  let msgDOM = document.getElementById("center-message");
+  if (msgDOM) {
+    document.body.removeChild(msgDOM);
+  }
+
+  msgDOM = document.createElement("div");
+  msgDOM.id = "center-message";
   document.body.appendChild(msgDOM);
 
   const msgInstance = createApp(Message, {
     msg,
     cb: () => {
       msgInstance.unmount();
-      document.body.removeChild(msgDOM);
+      if (msgDOM) {
+        document.body.removeChild(msgDOM);
+      }
     },
   });
 
@@ -53,7 +61,7 @@ export default Message;
 
 .message-wrapper {
   position: fixed;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   left: 0;
   top: 0;

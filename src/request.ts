@@ -3,7 +3,7 @@ import store from '@/store';
 
 const request = axios.create();
 
-request.defaults.baseURL = 'http://localhost:3000';
+request.defaults.baseURL = 'http://columns-api.mneumi.cn';
 request.defaults.headers['Content-Type'] = 'application/json';
 
 request.interceptors.request.use(
@@ -20,8 +20,6 @@ request.interceptors.request.use(
     return config;
   },
   (err) => {
-    const errContent = err?.response?.data?.error || '网络发生错误';
-
     store.commit('minusLoading');
 
     return Promise.reject(err.response.data);

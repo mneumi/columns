@@ -1,6 +1,8 @@
 <template>
   <teleport to="#loading">
-    <div class="loading-wrapper" v-show="isLoading">网络请求中，请稍后 ...</div>
+    <div class="loading-wrapper" v-show="isLoading">
+      <img src="https://columns-oss.oss-cn-shenzhen.aliyuncs.com/loading.gif" alt="网络加载中，请稍后...">
+    </div>
   </teleport>
 </template>
 
@@ -34,7 +36,7 @@ const useIsLoading = () => {
 @import "@/styles/mixins.scss";
 
 .loading-wrapper {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   background-color: $loading-background;
   position: fixed;
