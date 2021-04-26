@@ -98,6 +98,7 @@ const useSubmitForm = (
 
 <style lang="scss" scoped>
 @import "@/styles/colors.scss";
+@import "@/styles/mixins.scss";
 
 .validate-form-wrapper {
   display: flex;
@@ -110,12 +111,10 @@ const useSubmitForm = (
   .btn {
     padding: 0.15rem 0;
     background-color: $primary-color;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     color: $white-color;
     border-radius: 0.06rem;
     margin-top: 0.2rem;
+    @include center;
     &:hover {
       cursor: pointer;
     }

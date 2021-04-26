@@ -13,6 +13,7 @@ const getInitState = () => {
     columnId: '',
   };
   let columnInfo: IColumnInfo = {
+    columnId: '',
     title: '',
     desc: '',
     picture: '',
@@ -43,7 +44,7 @@ const store = createStore<IStore>({
     loading: 0,
     token: initState.token,
     user: initState.user,
-    columnInfo: initState.columnInfo
+    columnInfo: initState.columnInfo,
   },
   mutations: {
     login(state, payload) {

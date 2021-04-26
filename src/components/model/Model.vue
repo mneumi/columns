@@ -85,6 +85,7 @@ export default Model;
 
 <style lang="scss" scoped>
 @import "@/styles/colors.scss";
+@import "@/styles/mixins.scss";
 
 .model-wrapper {
   width: 100vw;
@@ -92,9 +93,8 @@ export default Model;
   position: fixed;
   left: 0;
   top: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  z-index: 999;
+  @include center;
   background-color: $light-black-color;
   .container {
     width: 30%;
@@ -106,9 +106,7 @@ export default Model;
     .title {
       flex: 2;
       border-bottom: 0.01rem solid $light-black-color;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      @include center;
       background-color: $primary-color;
       color: $white-color;
       border-top-left-radius: 0.08rem;
@@ -116,9 +114,7 @@ export default Model;
     }
     .content {
       flex: 5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      @include center;
     }
     .controller {
       flex: 3;

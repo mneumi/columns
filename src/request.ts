@@ -23,7 +23,7 @@ request.interceptors.request.use(
     const errContent = err?.response?.data?.error || '网络发生错误';
 
     store.commit('minusLoading');
-    
+
     return Promise.reject(err.response.data);
   }
 );

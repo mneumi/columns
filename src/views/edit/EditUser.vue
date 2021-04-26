@@ -53,6 +53,7 @@ import ValidateForm from "@/components/validate-form/ValidateForm.vue";
 import ValidateInput, {
   RulesProp,
 } from "@/components/validate-form/ValidateInput.vue";
+import { createCenterMessage } from "@/components/message/CenterMessage.vue";
 
 export default defineComponent({
   name: "EditUser",
@@ -129,8 +130,15 @@ const useUpload = () => {
     imageUrl.value = data.url;
   };
 
-  const handleUploadedError = (err: { data: { message: string } }) => {
-    createMessage(err.data.message, "error");
+  const handleUploadedError = (err: {
+    error: number;
+    data: { message: string };
+  }) => {
+    if (err.error === 2) {
+      createCenterMessage(err.data.message);
+    } else {
+      createMessage(err.data.message, "error");
+    }
   };
 
   return { imageUrl, handleUploadedSuccess, handleUploadedError };
@@ -145,24 +153,27 @@ const useSubmitForm = (
 
   const submitForm = (result: boolean) => {
     if (result) {
-      try {
-        const payload = {
-          ...store.state.user,
-          nickname: nicknameVal.value,
-          desc: descVal.value,
-          avatar: imageUrl.value,
-        };
-        request
-          .put(`/users/${store.state.user.userId}`, payload)
-          .then(() => {
-            return store.dispatch("getUserInfo");
-          })
-          .then(() => {
-            createMessage("更新成功", "success");
-          });
-      } catch (err) {
-        createMessage(err.data.message, "error");
-      }
+      const payload = {
+        ...store.state.user,
+        nickname: nicknameVal.value,
+        desc: descVal.value,
+        avatar: imageUrl.value,
+      };
+      request
+        .put(`/users/${store.state.user.userId}`, payload)
+        .then(() => {
+          return store.dispatch("getUserInfo");
+        })
+        .then(() => {
+          createMessage("更新成功", "success");
+        })
+        .catch((err) => {
+          if (err.error === 2) {
+            createCenterMessage(err.data.message);
+          } else {
+            createMessage(err.data.message, "error");
+          }
+        });
     } else {
       createMessage("表单填写有误，请检查", "error");
     }
@@ -174,6 +185,7 @@ const useSubmitForm = (
 
 <style lang="scss" scoped>
 @import "@/styles/colors.scss";
+@import "@/styles/mixins.scss";
 
 .upload-wrapper {
   margin-bottom: 0.5rem;
@@ -187,12 +199,10 @@ const useSubmitForm = (
     border-radius: 50% !important;
     background-color: $light-white-color;
     border-radius: 0.07rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     color: $light-grey-color;
     font-size: 0.35rem;
     margin-bottom: 0.2rem;
+    @include center;
     img {
       border-radius: 50%;
       width: 100%;

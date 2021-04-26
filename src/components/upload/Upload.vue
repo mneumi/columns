@@ -92,6 +92,8 @@ const useFileUploadStatus = (props: {
     (newVal) => {
       if (newVal) {
         fileUploadStatus.value = "success";
+      } else {
+        fileUploadStatus.value = "ready";
       }
     }
   );
@@ -154,11 +156,12 @@ const useHandleFileChange = (
 };
 </script>
 
-<style>
+<style lang="scss" scoped>
+@import "@/styles/colors.scss";
+@import "@/styles/mixins.scss";
+
 .file-upload {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  @include center;
 }
 .none {
   display: none;

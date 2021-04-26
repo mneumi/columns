@@ -1,6 +1,6 @@
 <template>
   <div class="slogn-wrapper">
-    <img src="http://zhihu.vikingship.xyz/img/callout.5b86dfc8.svg" />
+    <img src="https://columns-oss.oss-cn-shenzhen.aliyuncs.com/slogn.svg" />
     <div class="slogn">随心写作，快乐表达</div>
     <div class="btn" @click="handleClick">开始写文章</div>
   </div>
@@ -26,20 +26,20 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @import "@/styles/colors.scss";
+@import "@/styles/mixins.scss";
 
 .slogn-wrapper {
   width: 100%;
   padding-top: 0.7rem;
   height: 4rem;
-  display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
   margin-bottom: 0.3rem;
+  @include center;
   img {
     width: 3.08rem;
   }
   .slogn {
+    margin-top: 0.2rem;
     font-size: 0.4rem;
   }
   .btn {
@@ -50,7 +50,7 @@ export default defineComponent({
     text-align: center;
     border-radius: 0.04rem;
     color: $white-color;
-    margin-top: 0.4rem;
+    margin: 0.4rem;
     &:hover {
       background-color: darken($primary-color, 10%);
       cursor: pointer;

@@ -8,7 +8,9 @@
     }"
   >
     <div class="content">{{ msg }}</div>
-    <div class="close" @click="showMessage = false">X</div>
+    <div class="close" @click="closeMessage">
+      <div class="iconfont">&#xe605;</div>
+    </div>
   </div>
 </template>
 
@@ -28,11 +30,20 @@ const Message = defineComponent({
       type: String as PropType<MessageType>,
       required: true,
     },
+    cb: {
+      type: Function,
+      required: true,
+    },
   },
-  setup() {
+  setup(props) {
     const showMessage = ref<boolean>(true);
 
-    return { showMessage };
+    const closeMessage = () => {
+      showMessage.value = false;
+      props.cb();
+    };
+
+    return { showMessage, closeMessage };
   },
 });
 
@@ -46,9 +57,18 @@ export const createMessage = (
     msg = "网络请求发生错误";
   }
 
+  let hasClose = false;
+
   const msgInstance = createApp(Message, {
     msg,
     msgType,
+    cb: () => {
+      if (!hasClose) {
+        msgInstance.unmount();
+        document.body.removeChild(msgDOM);
+        hasClose = true;
+      }
+    },
   });
 
   if (!timeout) {
@@ -60,8 +80,11 @@ export const createMessage = (
   msgInstance.mount(msgDOM);
 
   setTimeout(() => {
-    msgInstance.unmount();
-    document.body.removeChild(msgDOM);
+    if (!hasClose) {
+      msgInstance.unmount();
+      document.body.removeChild(msgDOM);
+      hasClose = true;
+    }
     if (callback) {
       callback();
     }
@@ -73,15 +96,18 @@ export default Message;
 
 <style lang="scss" scoped>
 @import "@/styles/colors.scss";
+@import "@/styles/mixins.scss";
 
 .message-wrapper {
   position: fixed;
+  z-index: 999;
   top: 0.5rem;
   left: 50%;
   transform: translateX(-50%);
   background-color: $grey-color;
   color: $white-color;
   display: flex;
+  align-items: center;
   border-radius: 0.05rem;
   padding: 0.15rem;
   .content {
@@ -89,11 +115,12 @@ export default Message;
     margin-right: 0.5rem;
   }
   .close {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    @include center;
     &:hover {
       cursor: pointer;
+    }
+    .iconfont {
+      font-size: 0.24rem;
     }
   }
 }

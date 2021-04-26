@@ -188,6 +188,7 @@ const useValidateInput = (
     border-radius: 0.05rem;
     border: 0.01rem solid $dark-grey-color;
     font-size: 0.14rem;
+    line-height: 0.14rem;
   }
   .error-message {
     margin-top: 0.1rem;

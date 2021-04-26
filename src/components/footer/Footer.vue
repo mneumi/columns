@@ -29,6 +29,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @import "@/styles/colors.scss";
+@import "@/styles/mixins.scss";
 
 .footer-wrapper {
   width: 100%;
@@ -41,10 +42,8 @@ export default defineComponent({
   .footer {
     width: 12rem;
     height: 0.7rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     line-height: 0.7rem;
+    @include center;
     a {
       font-size: 0.12rem;
       margin-left: 0.1rem;

@@ -98,6 +98,7 @@ const useBtnClick = (switchDropdown: () => void) => {
 
 <style lang="scss" scoped>
 @import "@/styles/colors.scss";
+@import "@/styles/mixins.scss";
 
 .dropdown {
   width: 1.1rem;
@@ -111,9 +112,7 @@ const useBtnClick = (switchDropdown: () => void) => {
   z-index: 100;
   .dropdown-item {
     padding: 0.1rem 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    @include center;
     &:hover {
       cursor: pointer;
       background-color: $primary-color;

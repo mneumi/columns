@@ -1,6 +1,6 @@
 <template>
   <div class="write-wrapper">
-    <div class="title">新建文章</div>
+    <div class="title">{{ isEdit ? "编辑文章" : "新建文章" }}</div>
     <Upload
       action="/upload"
       :beforeUpload="uploadCheck"
@@ -55,7 +55,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, Ref } from "vue";
+import { defineComponent, ref, Ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { IPost } from "@/interface";
 import { beforeUploadCheck } from "@/utils";
@@ -66,6 +66,7 @@ import ValidateForm from "@/components/validate-form/ValidateForm.vue";
 import ValidateInput, {
   RulesProp,
 } from "@/components/validate-form/ValidateInput.vue";
+import { createCenterMessage } from "@/components/message/CenterMessage.vue";
 
 export default defineComponent({
   name: "Write",
@@ -80,15 +81,21 @@ export default defineComponent({
       handleUploadedError,
       uploadCheck,
     } = useUpload(pictureVal);
-    const { isEdit } = useEditExists(titleVal, contentVal, pictureVal, descVal);
+    const { isEdit, postId } = useEditExists(
+      titleVal,
+      contentVal,
+      pictureVal,
+      descVal
+    );
     const { formSubmit } = useFormSubmit(
       titleVal,
       contentVal,
       pictureVal,
       descVal,
+      postId,
       isEdit
     );
-    
+
     return {
       formSubmit,
       titleVal,
@@ -101,6 +108,7 @@ export default defineComponent({
       handleUploadedError,
       pictureVal,
       uploadCheck,
+      isEdit,
     };
   },
 });
@@ -112,7 +120,7 @@ const useEditExists = (
   descVal: Ref<string>
 ) => {
   const route = useRoute();
-  const postId = route.query.postId;
+  const postId = route.query.postId as string;
 
   if (postId) {
     request.get(`/posts/${postId}`).then((res) => {
@@ -126,7 +134,19 @@ const useEditExists = (
 
   const isEdit = postId !== undefined;
 
-  return { isEdit };
+  watch(
+    () => route.query,
+    (newQuery) => {
+      if (!newQuery.postId) {
+        titleVal.value = "";
+        contentVal.value = "";
+        pictureVal.value = "";
+        descVal.value = "";
+      }
+    }
+  );
+
+  return { isEdit, postId };
 };
 
 const useTitleInput = () => {
@@ -182,7 +202,7 @@ const usePicture = () => {
 };
 
 const useUpload = (pictureVal: Ref<string>) => {
-  const handleUploadedSuccess = (data: { url: string } ) => {
+  const handleUploadedSuccess = (data: { url: string }) => {
     pictureVal.value = data.url;
   };
 
@@ -190,7 +210,11 @@ const useUpload = (pictureVal: Ref<string>) => {
     error: number;
     data: { message: string };
   }) => {
-    createMessage(err.data.message, "error");
+    if (err.error === 2) {
+      createCenterMessage(err.data.message);
+    } else {
+      createMessage(err.data.message, "error");
+    }
   };
 
   const uploadCheck = (file: File) => {
@@ -220,6 +244,7 @@ const useFormSubmit = (
   contentVal: Ref<string>,
   pictureVal: Ref<string>,
   descVal: Ref<string>,
+  postId: string,
   isEdit: boolean
 ) => {
   const router = useRouter();
@@ -232,17 +257,38 @@ const useFormSubmit = (
         picture: pictureVal.value,
         desc: descVal.value,
       };
-      request
-        .post("/posts", payload)
-        .then((result) => {
-          const writeType = isEdit ? "编辑" : "创建";
-          createMessage(`${writeType}文章成功，2秒后跳转到文章页`, "success", () => {
-            router.push(`/posts/${result.data.postId}`);
+
+      if (!isEdit) {
+        request
+          .post("/posts", payload)
+          .then((result) => {
+            createMessage("创建文章成功，2秒后跳转到文章页", "success", () => {
+              router.push(`/posts/${result.data.postId}`);
+            });
+          })
+          .catch((err) => {
+            if (err.error === 2) {
+              createCenterMessage(err.data.message);
+            } else {
+              createMessage(err.data.message, "error");
+            }
           });
-        })
-        .catch((err) => {
-          createMessage(err.data.message, "error");
-        });
+      } else {
+        request
+          .patch(`/posts/${postId}`, payload)
+          .then(() => {
+            createMessage("编辑文章成功，2秒后跳转到文章页", "success", () => {
+              router.push(`/posts/${postId}`);
+            });
+          })
+          .catch((err) => {
+            if (err.error === 2) {
+              createCenterMessage(err.data.message);
+            } else {
+              createMessage(err.data.message, "error");
+            }
+          });
+      }
     }
   };
 
@@ -252,6 +298,7 @@ const useFormSubmit = (
 
 <style lang="scss" scoped>
 @import "@/styles/colors.scss";
+@import "@/styles/mixins.scss";
 
 .write-wrapper {
   width: 100%;
@@ -270,12 +317,10 @@ const useFormSubmit = (
     height: 2.7rem;
     background-color: $light-white-color;
     border-radius: 0.07rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     color: $light-grey-color;
     font-size: 0.35rem;
     margin-bottom: 0.2rem;
+    @include center;
     img {
       width: 100%;
       height: 100%;

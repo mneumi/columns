@@ -31,6 +31,7 @@ const useIsLoading = () => {
 
 <style lang="scss" scoped>
 @import "@/styles/colors.scss";
+@import "@/styles/mixins.scss";
 
 .loading-wrapper {
   width: 100vw;
@@ -40,9 +41,7 @@ const useIsLoading = () => {
   left: 0;
   top: 0;
   z-index: 999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  @include center;
   font-size: 0.4rem;
   color: $black-color;
 }

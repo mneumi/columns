@@ -1,8 +1,16 @@
 <template>
   <div class="header-wrapper">
     <div class="header">
-      <div class="title" @click="handleTitleClick">
-        mneumi 专栏（仅用于演示）
+      <div class="title-wrapper">
+        <a
+          href="https://github.com/mneumi/columns"
+          target="_blank"
+          class="iconfont"
+          >&#xe7ab;</a
+        >
+        <div class="title" @click="handleTitleClick">
+          <div>mneumi 专栏（仅用于演示）</div>
+        </div>
       </div>
       <div class="feature">
         <div class="non-login" v-if="!isLogin">
@@ -109,6 +117,7 @@ const useDropdown = () => {
 
 <style lang="scss" scoped>
 @import "@/styles/colors.scss";
+@import "@/styles/mixins.scss";
 
 .header-wrapper {
   width: 100%;
@@ -122,32 +131,38 @@ const useDropdown = () => {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    .title {
-      color: $white-color;
-      font-size: 0.2rem;
-      margin-left: 0.16rem;
-      &:hover {
-        cursor: pointer;
+    .title-wrapper {
+      display: flex;
+      align-items: center;
+      .iconfont {
+        font-size: 0.28rem;
+        color: $white-color;
+      }
+      .title {
+        color: $white-color;
+        font-size: 0.2rem;
+        margin-left: 0.16rem;
+        &:hover {
+          cursor: pointer;
+        }
       }
     }
     .feature {
       height: 0.7rem;
+      display: flex;
+      align-items: center;
       .non-login {
         height: 0.7rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        @include center;
         .btn {
           width: 0.7rem;
           height: 0.4rem;
           font-size: 0.14rem;
           border: 0.01rem solid $white-color;
-          display: flex;
-          justify-content: center;
-          align-items: center;
           color: $white-color;
           margin: 0 0.05rem;
           border-radius: 0.05rem;
+          @include center;
           &:hover {
             cursor: pointer;
             background-color: $white-color;
@@ -157,23 +172,22 @@ const useDropdown = () => {
       }
       .user-info {
         height: 0.7rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         position: relative;
+        @include center;
         .title {
           font-size: 0.14rem;
           height: 0.4rem;
           border: 0.01rem solid $white-color;
-          display: flex;
-          align-items: center;
-          justify-content: center;
           margin: 0.1rem;
           padding: 0.1rem;
           box-sizing: border-box;
           border-radius: 0.07rem;
+          color: $white-color;
+          @include center;
           &:hover {
             cursor: pointer;
+            color: $black-color;
+            background-color: $white-color;
           }
         }
       }

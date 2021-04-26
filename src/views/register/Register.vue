@@ -49,6 +49,7 @@ import ValidateInput, {
 } from "@/components/validate-form/ValidateInput.vue";
 import ValidateForm from "@/components/validate-form/ValidateForm.vue";
 import { createMessage } from "@/components/message/Message.vue";
+import { createCenterMessage } from "@/components/message/CenterMessage.vue";
 
 export default defineComponent({
   name: "Register",
@@ -99,8 +100,8 @@ const useNicknameInput = () => {
     },
     {
       type: "custom",
-      validator: () => nicknameVal.value.trim().length >= 6,
-      message: "昵称长度要大于等于6位",
+      validator: () => nicknameVal.value.trim().length >= 2,
+      message: "昵称长度要大于等于2位",
     },
   ];
 
@@ -162,6 +163,10 @@ const useFormSubmit = (
           });
         })
         .catch((err) => {
+          if (err.error === 2) {
+            createCenterMessage(err.data.message);
+            return;
+          }
           createMessage(err.data.message, "error");
         });
     }

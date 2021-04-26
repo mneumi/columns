@@ -57,7 +57,7 @@ export default defineComponent({
 });
 
 const useEmailInput = () => {
-  const emailVal = ref<string>("");
+  const emailVal = ref<string>("author03@outlook.com");
   const emailRules: RulesProp = [
     {
       type: "required",
@@ -73,7 +73,7 @@ const useEmailInput = () => {
 };
 
 const usePasswordInput = () => {
-  const passwordVal = ref<string>("");
+  const passwordVal = ref<string>("ASDFGHJKL");
   const passwordRules: RulesProp = [
     {
       type: "required",

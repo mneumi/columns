@@ -1,8 +1,9 @@
 <template>
   <div class="post-wrapper">
     <div class="header">
-      <a href="/">首页</a> /
-      <a :href="`/columns/${postInfo.columnId}`">专栏首页</a> /
+      <router-link to="/">首页</router-link> /
+      <router-link :to="`/columns/${postInfo.columnId}`">专栏首页</router-link>
+      /
       <span>{{ postInfo.title }}</span>
     </div>
     <div class="header-img-wrapper">
@@ -13,7 +14,7 @@
       <img class="avatar" :src="userInfo.avatar" />
       <div class="info">
         <div class="author-name">{{ userInfo.nickname }}</div>
-        <div class="author-desc">{{ userInfo.userDesc }}</div>
+        <div class="author-desc">{{ userInfo.desc }}</div>
       </div>
       <div class="date">
         发表于：{{ parseTimestampToDate(postInfo.updateAt) }}
@@ -40,6 +41,7 @@ import { IPost, IStore, IUser } from "@/interface";
 import { parseTimestampToDate } from "@/utils";
 import { createModel } from "@/components/model/Model.vue";
 import { createMessage } from "@/components/message/Message.vue";
+import { createCenterMessage } from "@/components/message/CenterMessage.vue";
 
 export default defineComponent({
   name: "Post",
@@ -48,7 +50,10 @@ export default defineComponent({
     const { userInfo, changeUserInfo } = useUserInfo();
     const { isOwner } = useIsOwner(postInfo);
     const { editPost } = useEditPost();
-    const { deletePost } = useDeletePost(toRef(postInfo, "columnId"), toRef(postInfo, "postId"));
+    const { deletePost } = useDeletePost(
+      toRef(postInfo, "columnId"),
+      toRef(postInfo, "postId")
+    );
     useRequestData(postInfo.postId, changePostInfo, changeUserInfo);
 
     return {
@@ -67,7 +72,7 @@ const usePostInfo = () => {
 
   const postInfo = reactive<IPost>({
     postId: route.params.postId as string,
-    columnId: route.params.columnId as string,
+    columnId: route.query.columnId as string,
     title: "",
     desc: "",
     content: "",
@@ -129,7 +134,7 @@ const useDeletePost = (columnId: Ref<string>, postId: Ref<string>) => {
       "确认删除文章",
       "确定要删除文章吗？一旦删除将无法恢复！",
       "确认删除",
-      "取消",
+      "取消删除",
       () => {
         request
           .delete(`/posts/${postId.value}`)
@@ -143,7 +148,11 @@ const useDeletePost = (columnId: Ref<string>, postId: Ref<string>) => {
             );
           })
           .catch((err) => {
-            createMessage(err.data.message, "error");
+            if (err.error === 2) {
+              createCenterMessage(err.data.message);
+            } else {
+              createMessage(err.data.message, "error");
+            }
           });
       }
     );
@@ -185,7 +194,7 @@ const useRequestData = (
     margin: 0.3rem 0 0.5rem 0;
     width: 8rem;
     height: 0.5rem;
-    background-color: #e9ecef;
+    background-color: $light-white-color;
     border-radius: 0.06rem;
     line-height: 0.5rem;
     padding-left: 0.2rem;
@@ -194,10 +203,10 @@ const useRequestData = (
   }
   .header-img-wrapper {
     width: 8rem;
-    height: 3rem;
+    height: 4rem;
     img {
       width: 8rem;
-      height: 3rem;
+      height: 4rem;
       border-radius: 0.1rem;
       object-fit: cover;
     }

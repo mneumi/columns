@@ -3,44 +3,52 @@
   <div class="column-list-wrapper">
     <div class="column-list-header">精选专栏</div>
     <div class="column-list">
-      <template v-for="item in list" :key="item._id">
+      <template v-for="item in list" :key="item.columnId">
         <div class="column">
           <div class="avatar">
-            <img :src="item.avatar.url" />
+            <img :src="item.picture" />
           </div>
           <div class="title">{{ item.title }}</div>
-          <div class="desc">{{ item.description }}</div>
-          <div class="btn" @click="() => enterColumn(item._id)">进入专栏</div>
+          <div class="desc">{{ item.desc }}</div>
+          <div class="btn" @click="() => enterColumn(item.columnId)">
+            进入专栏
+          </div>
         </div>
       </template>
+    </div>
+    <div v-if="hasMore" @click="getMore">
+      <More />
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, reactive } from "vue";
+import { defineComponent } from "vue";
 import { useRouter } from "vue-router";
+import { IColumnInfo } from "@/interface";
+import More, { useMore } from "@/components/more/More.vue";
 import Slogn from "./Slogn.vue";
 
 export default defineComponent({
   name: "Home",
-  components: { Slogn },
+  components: { Slogn, More },
   setup() {
-    const router = useRouter();
+    const { list, hasMore, getMore } = useMore<IColumnInfo>("/columns", 1, 3);
+    const { enterColumn } = useEnterColumn();
 
-    onMounted(() => {
-      // 获取专栏信息
-    });
-
-    const enterColumn = (id: string) => {
-      router.push(`/columns/${id}`);
-    };
-
-    const list = reactive([]);
-
-    return { list, enterColumn };
+    return { list, hasMore, getMore, enterColumn };
   },
 });
+
+const useEnterColumn = () => {
+  const router = useRouter();
+
+  const enterColumn = (id: string) => {
+    router.push(`/columns/${id}`);
+  };
+
+  return { enterColumn };
+};
 </script>
 
 <style lang="scss" scoped>

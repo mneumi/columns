@@ -44,6 +44,7 @@ const useTabList = () => {
 
 <style lang="scss" scoped>
 @import "@/styles/colors.scss";
+@import "@/styles/mixins.scss";
 
 .edit-wrapper {
   width: 100%;
@@ -60,12 +61,10 @@ const useTabList = () => {
       .item {
         box-sizing: border-box;
         padding: 0.1rem 0.2rem;
-        display: flex;
-        justify-content: center;
-        align-items: center;
         border: 0.01rem solid $middle-grey-color;
         border-radius: 0.04rem;
         margin-right: 0.2rem;
+        @include center;
         &:hover {
           cursor: pointer;
           border: 0.01rem solid $primary-color;

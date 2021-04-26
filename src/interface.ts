@@ -6,6 +6,7 @@ export interface IStore {
 }
 
 export interface IColumnInfo {
+  columnId: string;
   title: string;
   desc: string;
   picture: string;
