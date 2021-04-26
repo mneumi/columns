@@ -33,9 +33,10 @@ export default defineComponent({
   padding-top: 0.7rem;
   height: 4rem;
   flex-direction: column;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.8rem;
   @include center;
   img {
+    margin-top: 1rem;
     width: 3.08rem;
   }
   .slogn {
