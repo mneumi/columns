@@ -20,7 +20,7 @@ export default defineComponent({
     Loading,
   },
   setup() {
-    if (document.documentElement.clientWidth < 1318) {
+    if (document.documentElement.clientWidth < 1200) {
       alert(
         "温馨提示：本项目仅支持大屏设备（电脑端）使用，并未适配移动端，请更换设备获得更好的体验！"
       );

@@ -62,7 +62,7 @@ const useEnterColumn = () => {
   justify-content: center;
   padding-bottom: 0.7rem;
   .column-list-header {
-    width: 13rem;
+    width: 12rem;
     display: flex;
     justify-content: center;
     font-weight: 900;
@@ -70,13 +70,13 @@ const useEnterColumn = () => {
     margin: 0.3rem 0;
   }
   .column-list {
-    width: 13rem;
+    width: 11rem;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-around;
     .column {
-      width: 4rem;
-      height: 2.8rem;
+      width: 3.2rem;
+      height: 2.5rem;
       box-sizing: border-box;
       padding: 0.3rem 0.3rem;
       border-radius: 0.08rem;

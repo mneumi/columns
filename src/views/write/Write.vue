@@ -307,13 +307,13 @@ const useFormSubmit = (
   align-items: center;
   padding-bottom: 1rem;
   .title {
-    width: 13rem;
+    width: 12rem;
     font-size: 0.28rem;
     margin: 0.3rem 0;
     font-weight: 500;
   }
   .upload-img {
-    width: 13rem;
+    width: 12rem;
     height: 2.7rem;
     background-color: $light-white-color;
     border-radius: 0.07rem;
@@ -329,7 +329,7 @@ const useFormSubmit = (
   }
   .form {
     display: flex;
-    width: 13rem;
+    width: 12rem;
   }
 }
 </style>
