@@ -22,7 +22,7 @@ export default defineComponent({
   setup() {
     if (document.documentElement.clientWidth < 1200) {
       alert(
-        "温馨提示：本项目仅支持大屏设备（电脑端）使用，并未适配移动端，请更换设备获得更好的体验！"
+        "温馨提示：本项目仅支持大屏幕使用，并未适配移动端，请放大浏览器窗口或者更换设备获得更好的体验！"
       );
     }
     createCenterMessage(

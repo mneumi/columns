@@ -1,8 +1,11 @@
 <template>
   <div class="footer-wrapper">
     <div class="footer">
+      <div class="copyright">
+        &copy;
+      </div>
       <div>
-        &copy; mneumi (mneumi.cn) 版权所有 | 此仅为展示使用，不涉及商业用途 |
+        mneumi (mneumi.cn) 版权所有 | 此仅为展示使用，不涉及商业用途 |
       </div>
       <span
         ><a href="https://beian.miit.gov.cn/#/Integrated/index"
@@ -42,7 +45,7 @@ export default defineComponent({
   .footer {
     width: 12rem;
     height: 0.7rem;
-    line-height: 0.7rem;
+    position: relative;
     @include center;
     a {
       font-size: 0.12rem;
